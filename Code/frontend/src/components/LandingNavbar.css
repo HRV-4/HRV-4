@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.landing-navbar {
+  height: 64px; /* Matches standard topbar height */
+  background: white;
+  border-bottom: 1px solid #e5e5ea;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+}
+
+.landing-nav-content {
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Brand Styling */
+.landing-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.brand-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1c1c1e;
+  letter-spacing: -0.5px;
+}
+
+/* Actions Styling */
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-link-simple {
+  background: none;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.nav-link-simple:hover {
+  color: #007AFF;
+}
+
+.nav-btn-signin {
+  padding: 8px 18px;
+  background: #e0f2fe; /* Light blue background */
+  color: #007AFF;      /* Primary blue text */
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn-signin:hover {
+  background: #007AFF;
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+  .landing-nav-content {
+    padding: 0 16px;
+  }
+
+  .brand-text {
+    font-size: 18px;
+  }
+}

@@ -1,0 +1,92 @@
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* GRID LAYOUT */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two equal columns */
+  /* Top row fixed at 400px (or whatever height fits the SmartStack) */
+  /* 'auto' for the second row allows it to grow with content */
+  grid-template-rows: 470px auto;
+  gap: 25px;
+  align-items: start; /* Ensures children fill the row height */
+}
+
+/* Left Column Container (SmartStack) */
+.empty-box {
+  /* Ensure it fills the grid cell completely */
+  width: 100%;
+  height: 100%;
+  background: white;
+  border-radius: 12px;
+  /* If SmartStack provides its own shadow/border, we might not need them here */
+  /* But based on previous code, we had a border */
+  border: 1px solid #e0e0e0;
+  overflow: hidden; /* Prevent spillover */
+}
+
+/* Right Column Container (Stack of Status + Activities) */
+.right-column-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  justify-content: space-between; /* Distribute space evenly */
+}
+
+/* Ensure the two cards in the right stack share the height equally */
+.right-column-stack > .card {
+  /* If gap is 25px, flex:1 ensures they split the remaining space perfectly */
+  min-height: 0; /* Prevents flex overflow issues */
+}
+
+/* Base Card Style */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.clickable-card {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #e0e0e0;
+}
+
+.clickable-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border: 1px solid #3498db;
+}
+
+/* Bottom Card spans full width */
+.bottom-card {
+  grid-column: 1 / -1;
+  height: auto;
+  align-self: start;
+  /* margin-top is handled by grid gap, so we can remove or keep small */
+  margin-top: 0;
+}
+
+/* Responsive adjustment */
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* Stack vertically on tablet/mobile */
+    grid-template-rows: auto;
+  }
+
+  .right-column-stack {
+    height: auto;
+  }
+
+  .empty-box {
+    height: 400px; /* Keep fixed height for the complex widget */
+  }
+}

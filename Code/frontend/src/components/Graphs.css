@@ -1,0 +1,265 @@
+/* PAGE CONTAINER */
+.graphs-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px;
+  background-color: #ffffff;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* HEADER BAR */
+.horizantal-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-light);
+  padding: 20px 40px;
+  background-color: #34C759;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.top-left {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* TIME RANGE */
+.time-range {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.time-range-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.time-range-segmented {
+  display: inline-flex;
+  background: #f3f4f6;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.time-range-btn {
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.time-range-btn:hover {
+  color: var(--text-main);
+}
+
+.time-range-btn.is-active {
+  background: #ffffff;
+  color: #34C759;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* SCROLL CONTAINER */
+.graphs-container .graphs-scroll {
+  height: calc(75vh - 250px); /* navbar + header */
+  overflow-y: scroll;
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: none;
+}
+
+.graphs-scroll-wrapper {
+  position: relative;
+}
+
+/* SINGLE PAGE (FULL SCREEN) */
+.graphs-container .graphs-page {
+  height: 100%;
+  min-height: 100%;
+  flex-shrink: 0;
+  padding: 20px;
+  padding-right: 56px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.graphs-container .graphs-page h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* HORIZONTAL GRAPH ROW */
+.scrollable-graphs-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 40px;
+}
+
+.graphs-together {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+/* GRAPH BOXES */
+.chart-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.chart-box.pie {
+  width: 250px;
+  height: 240px; 
+}
+
+.chart-box.bar {
+  width: 210px;
+  height: 200px;
+}
+
+.top-metric {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.bottom-metric {
+  font-size: 15px;
+  color: #666;
+  margin-top: 6px;
+  text-align: left;
+}
+
+.graphs-page .graph-header {
+  margin-top: 0;
+}
+/* TIPS BUTTON */
+.tips-btn {
+  padding: 15px 20px;
+  border-radius: 14px;
+  color: #34C759;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.tips-btn::after {
+  content: "→";
+  font-size: 20px;
+  transition: transform 0.2s ease;
+}
+
+/* DOT NAVIGATION */
+.graphs-dots {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  z-index: 10;
+}
+
+.graphs-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d0d0d0;
+  padding: 0;
+  line-height: 0;
+  font-size: 0;
+  box-sizing: border-box;
+  display: block;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  cursor: pointer;
+}
+
+.graphs-dot.active {
+  height: 20px;
+  border-radius: 10px;
+  background: #34C759;
+}
+
+/* SCROLLBAR */
+.graphs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.graphs-scroll::-webkit-scrollbar-thumb {
+  display: none;
+}
+
+/*  RESPONSIVE */
+@media (max-width: 768px) {
+  .graphs-container {
+    padding: 20px;
+  }
+
+  .horizantal-top {
+    padding: 16px;
+  }
+
+  .graphs-dots {
+    right: 10px;
+  }
+}
+
+/* PULSE CARD */
+.pulse-card {
+  width: 100%;
+  max-width: 1200px;
+  margin: 40px auto;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* PADDING INNER */
+.pulse-card-inner {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.pulse-header {
+  width: 100%;
+  margin-bottom: 12px;
+  padding-bottom: 30px;
+}
+
+.pulse-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111;
+  margin: 0;
+}

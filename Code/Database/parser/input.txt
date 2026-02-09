@@ -1,0 +1,6 @@
+D:/Development/HRV_Bitirme/s2/processed_template.xlsx
+D:/Development/HRV_Bitirme/s2/pdfs/örnek1013-01.12.2023.txt
+D:/Development/HRV_Bitirme/s2/pdfs/HRVvital_analysis_ornek_1013.pdf
+D:/Development/HRV_Bitirme/s2/pdfs/HRVvital_analysis_overview_ornek_1013.pdf
+D:/Development/HRV_Bitirme/s2/pdfs/Autonom_Health_activity_protocol_örnek_1013.pdf
+D:/Development/HRV_Bitirme/s2/pdfs/HRVmed_analysis_ornek_1013.pdf

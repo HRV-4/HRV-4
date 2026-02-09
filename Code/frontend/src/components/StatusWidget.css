@@ -1,0 +1,145 @@
+/* Internal content container - fills the parent card */
+.status-widget-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+/* --- 1. Status Hero --- */
+.status-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+}
+
+.status-hero-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.25); /* More visible semi-transparent bg */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0; /* Helps with text truncation if needed */
+}
+
+.status-hero-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.status-hero-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.9;
+  line-height: 1.3;
+}
+
+/* --- 2. Tip Section --- */
+.status-tip-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  justify-content: center; /* Center tip vertically in available space */
+}
+
+.status-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8e8e93;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-tip-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e5ea;
+  border-radius: 10px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.status-tip-card:hover {
+  transform: translateY(-2px);
+  border-color: #d1d1d6;
+}
+
+.status-tip-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tip-color) 15%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-tip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden; /* Crucial for ellipsis */
+  flex: 1; /* Takes up remaining width */
+}
+
+.status-tip-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1c1c1e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-tip-desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #8e8e93;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- 3. Footer --- */
+.status-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.see-more-link {
+  font-size: 0.8rem;
+  color: #3498db;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.see-more-link:hover {
+  color: #1d70b8;
+  text-decoration: underline;
+}
