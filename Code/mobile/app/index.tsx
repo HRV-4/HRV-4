@@ -18,7 +18,8 @@ export default function LandingScreen() {
     const router = useRouter();
 
     const navigateToLogin = () => {
-        router.push('/login'); 
+        //router.push('/login');
+        router.push('/dashboard'); //just to test the frontend of mobile
     };
 
     const navigateToRegister = () => {

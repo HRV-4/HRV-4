@@ -1,102 +1,131 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Built-in icons
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
+import { View, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { TabBarIcon } from '@/components/ui/TabBarIcon';
 import { HapticTab } from '@/components/haptic-tab';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import  CustomHeader from '@/components/Header';
+import CustomHeader from '@/components/Header';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const insets = useSafeAreaInsets();
 
-  return (
-    <Tabs
-        backBehavior={"history"}
-        screenOptions={{
-            tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-            headerShown: true, // ENABLE the header
-            tabBarButton: HapticTab,
-            tabBarStyle: Platform.select({
-                ios: {
+    return (
+        <Tabs
+            backBehavior="history"
+            screenOptions={{
+                headerShown: true,
+                tabBarShowLabel: false,
+                tabBarButton: HapticTab,
+                tabBarActiveTintColor: '#000000',
+                tabBarInactiveTintColor: '#999999',
+
+                // 1. Container Geometry
+                tabBarStyle: {
                     position: 'absolute',
-                    // iOS needs more height to clear the bottom swipe bar
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
                     height: 90,
-                    paddingBottom: 30,
-                    paddingTop: 8,
+                    borderTopWidth: 0,
+                    elevation: 0,
+                    backgroundColor: 'transparent',
+
+                    // --- THE FIX ---
+                    // Apply the radius here too, so the shadow follows the curve
+                    borderTopLeftRadius: 34,   // Matches your maskWrapper
+                    borderTopRightRadius: 34,
+                    // ----------------
+
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 20,
+
+                    paddingTop: 19,
                 },
-                default: {
-                    // Android/Web: Increase height to ~65-70px to fit the "g" and "p"
-                    height: 70 + insets.bottom,
-                    // Android: Add the bottom inset to the padding so icons move up
-                    paddingBottom: 10 + insets.bottom,
-                    paddingTop: 8,     // Pushes the icon down from the top edge
-                },
-            }),
-            // ---------------------------
 
-            // This connects your Custom Header to the Tabs
-            header: ({ options }) => <CustomHeader title={options.title || ''} />,
-        }}>
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-            title: 'Dashboard',
-            tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
-        }}
-      />
-      {/* 2. Graphs Tab */}
-      <Tabs.Screen
-          name="graphs"
-          options={{
-              title: 'Graphs',
-              tabBarIcon: ({ color }) => <Ionicons name="stats-chart" size={24} color={color} />,
-          }}
-      />
-      {/* 3. Insights Tab */}
-      <Tabs.Screen
-          name="insights"
-          options={{
-              title: 'Insights',
-              tabBarIcon: ({ color }) => <Ionicons name="bulb" size={24} color={color} />,
-          }}
-      />
-      {/* 4. Activities Tab */}
-      <Tabs.Screen
-          name="activities"
-          options={{
-              title: 'Activities',
-              tabBarIcon: ({ color }) => <Ionicons name="fitness" size={24} color={color} />,
-          }}
-      />
-      {/* 5. Sensors Tab */}
-      <Tabs.Screen
-          name="sensors"
-          options={{
-              title: 'Sensors',
-              tabBarIcon: ({ color }) => <Ionicons name="bluetooth" size={24} color={color} />,
-          }}
-      />
-        {/* --- HIDDEN TABS (Keep Header & TabBar visible) --- */}
+                // 2. The Glass Layer
+                tabBarBackground: () => (
+                    <View style={styles.maskWrapper}>
+                        {/* Figma Layer: Background Blur
+                           Property: backdrop-filter: blur(40px)
+                        */}
+                        <BlurView
+                            intensity={40} // EXACTLY matching Figma's 40px blur
+                            tint="light"   // "light" + White Overlay = Hard Light simulation
+                            style={StyleSheet.absoluteFill}
+                        >
+                            {/* Figma Layer: Fill & Blend Mode Simulation
+                               Figma uses: rgba(0,0,0, 0.21) + Hard Light
 
-        <Tabs.Screen
-            name="profile"
-            options={{
-                title: 'Profile',
-                href: null, // This hides it from the bottom tab bar!
+                               React Native Equivalent:
+                               To mimic 'Hard Light' (which brightens/contrasts) on a light UI,
+                               we use a white overlay. A 21% black layer would just look grey.
+                            */}
+                            <View style={{
+                                ...StyleSheet.absoluteFillObject,
+                                backgroundColor: 'rgba(255, 255, 255, 0.35)',
+                            }} />
+                        </BlurView>
+                    </View>
+                ),
+
+                header: ({ options }) => <CustomHeader title={options.title || ''} />,
             }}
-        />
-
-        <Tabs.Screen
-            name="faq"
-            options={{
-                title: 'FAQ',
-                href: null, // This hides it from the bottom tab bar!
-            }}
-        />
-    </Tabs>
-  );
+        >
+            {/* ... Your Tabs.Screens remain exactly the same ... */}
+            <Tabs.Screen
+                name="dashboard"
+                options={{
+                    title: 'Dashboard',
+                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="dashboard" color={color} focused={focused} />,
+                }}
+            />
+            <Tabs.Screen
+                name="graphs"
+                options={{
+                    title: 'Graphs',
+                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="graphs" color={color} focused={focused} />,
+                }}
+            />
+            <Tabs.Screen
+                name="insights"
+                options={{
+                    title: 'Insights',
+                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="insights" color={color} focused={focused} />,
+                }}
+            />
+            <Tabs.Screen
+                name="sensors"
+                options={{
+                    title: 'Sensors',
+                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="sensors" color={color} focused={focused} />,
+                }}
+            />
+            <Tabs.Screen
+                name="faq"
+                options={{
+                    title: 'FAQ',
+                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="chart" color={color} focused={focused} />,
+                }}
+            />
+            <Tabs.Screen
+                name="activities"
+                options={{
+                    title: 'Activities',
+                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="activities" color={color} focused={focused} />,
+                }}
+            />
+            <Tabs.Screen name="profile" options={{ href: null }} />
+        </Tabs>
+    );
 }
+
+const styles = StyleSheet.create({
+    maskWrapper: {
+        flex: 1,
+        // Figma Shape: border-radius: 34px
+        borderTopLeftRadius: 34,
+        borderTopRightRadius: 34,
+        overflow: 'hidden', // Clips the BlurView to the radius
+    },
+});

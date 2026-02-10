@@ -13,6 +13,8 @@ import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import Svg, { Circle, Path, Rect, Polygon, Line, Polyline } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
 
 const { width } = Dimensions.get('window');
 
@@ -376,7 +378,8 @@ export default function DashboardScreen() {
     const sleepSubtitleText = sleepQualityHigh ? '#047857' : '#c2410c';
 
     return (
-        <View style={[styles.container, { backgroundColor: isDark ? '#000' : '#F2F2F7' }]}>
+        <ScreenBackground style={styles.container}>
+
             <ScrollView 
                     style={styles.scrollView}
                     showsVerticalScrollIndicator={false}
@@ -523,7 +526,7 @@ export default function DashboardScreen() {
                     </View>
                 </View>
             </ScrollView>
-        </View>
+    </ScreenBackground>
     );
 }
 
