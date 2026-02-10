@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   // Hero Card
   heroCard: {
     borderRadius: 20, height: 101, flexDirection: 'row', alignItems: 'center',
-    marginBottom: 16, overflow: 'hidden', elevation: 8,
+    marginBottom: 16, marginTop: 11,overflow: 'hidden', elevation: 8,
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8,
   },
   heroContent: { flex: 1, zIndex: 1, paddingLeft: 16 },
