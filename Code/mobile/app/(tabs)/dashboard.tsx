@@ -1,952 +1,918 @@
-import React, { useState } from 'react';
-import {
-    StyleSheet,
-    ScrollView,
-    View,
-    TouchableOpacity,
-    Dimensions,
-    Animated,
-} from 'react-native';
+import React from 'react';
+import { StyleSheet, ScrollView, View, TouchableOpacity, Dimensions, Text, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ThemedText } from '@/components/themed-text';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import Svg, { Circle, Path, Rect, Polygon, Line, Polyline } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path, G, Defs, ClipPath, Rect, Circle } from 'react-native-svg';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
+import { BioIcon } from '@/components/ui/BioIcon';
+import { SleepIcon } from '@/components/ui/SleepIcon';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
-const { width } = Dimensions.get('window');
+// --- RESPONSIVE SCALING ---
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const FIGMA_WIDTH = 402;
+const scale = (size: number) => (SCREEN_WIDTH / FIGMA_WIDTH) * size;
 
-// Mock data similar to web frontend
-const DEFAULT_METRICS = {
-    biologicalAge: 30,
-    comparisonScore: 40,
-    avgHeartRate: 78,
-    sleepDuration: '7h 20m',
-    sleepQuality: 82,
-    performancePotential: '94%',
-    burnoutResistance10: 8.2,
-    stressProcessing10: 6.8,
-    impulse: 65,
-    regenerationScore10: 7.5,
-    overallRegeneration: '3h 20m',
-    maxHr: 185,
-    minHr: 54,
-    avgHrDay: 82,
-    avgHrNight: 58,
-};
-
-// Mock data for new sections
-const INSIGHTS_DATA = [
-    { id: 1, type: 'positive', icon: 'trending-up', color: '#34C759', title: 'Recovery improving', desc: 'Your HRV has increased by 11.5% compared to your baseline.', metric: '+11.5%' },
-    { id: 2, type: 'info', icon: 'moon', color: '#AF52DE', title: 'Sleep quality impact', desc: 'Your HRV is highest after nights with 7+ hours of sleep.', metric: '7h+' },
-    { id: 3, type: 'warning', icon: 'flash', color: '#FF9500', title: 'Training load optimal', desc: 'Your exercise intensity matches your recovery capacity.', metric: 'Balanced' },
-];
-
-const TIPS_DATA = [
-    { id: 1, icon: 'moon', color: '#AF52DE', title: 'Prioritize Rest Tonight', desc: 'Your body needs recovery time', priority: 'high' },
-    { id: 2, icon: 'water', color: '#007AFF', title: 'Stay Hydrated', desc: 'Aim for 3 liters today', priority: 'medium' },
-    { id: 3, icon: 'walk', color: '#34C759', title: 'Light Movement', desc: 'A gentle walk can boost recovery', priority: 'medium' },
-    { id: 4, icon: 'flower-outline', color: '#FF6B9D', title: 'Deep Breathing', desc: '4-7-8 breathing technique', priority: 'low' },
-];
-
-const ACTIVITIES_DATA = [
-    { id: 1, type: 'running', icon: 'fitness', color: '#FF6B35', title: 'Morning Run', desc: '5.2 km in 32 minutes', time: '8:30 AM', duration: '32 min' },
-    { id: 2, type: 'meditation', icon: 'leaf', color: '#34C759', title: 'Meditation', desc: 'Mindfulness session', time: '12:00 PM', duration: '15 min' },
-    { id: 3, type: 'sleep', icon: 'moon', color: '#AF52DE', title: 'Sleep', desc: 'Night rest', time: '10:30 PM', duration: '7h 20m' },
-];
-
-// Gauge Component for Biological Age
-function Gauge({ score, text, isDark }: { score: number; text: string; isDark: boolean }) {
-    const radius = 70;
-    const stroke = 12;
-    const size = 170;
-    const center = size / 2;
-    const normalizedScore = Math.min(Math.max(score, -100), 100);
-    const isPositive = normalizedScore >= 0;
-    
-    const circumference = 2 * Math.PI * radius;
-    const progress = Math.abs(normalizedScore) / 100;
-    const strokeDashoffset = circumference * (1 - progress);
-    
-    const color = isPositive ? '#34C759' : '#FF3B30';
-
+// --- ICONS ---
+function ProfileIcon() {
     return (
-        <View style={gaugeStyles.wrapper}>
-            <Svg width={size} height={size} style={gaugeStyles.svg}>
-                {/* Background Circle */}
-                <Circle
-                    cx={center}
-                    cy={center}
-                    r={radius}
-                    stroke="#E5E5EA"
-                    strokeWidth={stroke}
-                    fill="transparent"
-                />
-                {/* Progress Circle */}
-                <Circle
-                    cx={center}
-                    cy={center}
-                    r={radius}
-                    stroke={color}
-                    strokeWidth={stroke}
-                    fill="transparent"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                    transform={`rotate(-90 ${center} ${center})`}
-                />
+        <View style={{ width: scale(38), height: scale(38), justifyContent: 'center', alignItems: 'center' }}>
+            <Svg width={scale(38)} height={scale(38)} viewBox="0 0 38 38" fill="none" style={{ position: 'absolute' }}>
+                <Circle cx="19" cy="19" r="19" fill="white"/>
             </Svg>
-            
-            {/* Text Container */}
-            <View style={gaugeStyles.content}>
-                <View style={gaugeStyles.stack}>
-                    <ThemedText style={[gaugeStyles.value, { color: color }]}>
-                        {Math.abs(score)}%
-                    </ThemedText>
-                    <ThemedText style={gaugeStyles.note}>{text}</ThemedText>
-                </View>
+            <View style={{ marginTop: scale(2) }}>
+                <Svg width={scale(29)} height={scale(28)} viewBox="0 0 29 28" fill="none">
+                    <G clipPath="url(#clip0_profile)">
+                        <Path d="M14.5 14C15.9339 14 17.3356 13.5895 18.5279 12.8203C19.7201 12.0511 20.6494 10.9579 21.1981 9.67879C21.7469 8.3997 21.8904 6.99224 21.6107 5.63437C21.331 4.2765 20.6405 3.02922 19.6265 2.05026C18.6126 1.07129 17.3208 0.404603 15.9144 0.134506C14.508 -0.13559 13.0503 0.003033 11.7255 0.532846C10.4008 1.06266 9.26849 1.95987 8.47185 3.11101C7.67521 4.26216 7.25 5.61553 7.25 7C7.25192 8.85595 8.01637 10.6354 9.3756 11.9477C10.7348 13.2601 12.5778 13.9982 14.5 14ZM14.5 2.33334C15.4559 2.33334 16.3904 2.60703 17.1853 3.11981C17.9801 3.63259 18.5996 4.36143 18.9654 5.21415C19.3312 6.06687 19.427 7.00518 19.2405 7.91043C19.054 8.81567 18.5936 9.64719 17.9177 10.2998C17.2417 10.9525 16.3805 11.3969 15.4429 11.577C14.5054 11.7571 13.5335 11.6647 12.6504 11.3114C11.7672 10.9582 11.0123 10.3601 10.4812 9.59266C9.95014 8.82524 9.66667 7.92298 9.66667 7C9.66667 5.76233 10.1759 4.57534 11.0823 3.70017C11.9887 2.825 13.2181 2.33334 14.5 2.33334Z" fill="#374957"/>
+                        <Path d="M14.5 16.334C11.6168 16.3371 8.85251 17.4443 6.81375 19.4128C4.77498 21.3812 3.6282 24.0502 3.625 26.834C3.625 27.1434 3.75231 27.4402 3.97891 27.6589C4.20552 27.8777 4.51286 28.0007 4.83333 28.0007C5.1538 28.0007 5.46115 27.8777 5.68775 27.6589C5.91436 27.4402 6.04167 27.1434 6.04167 26.834C6.04167 24.6681 6.93281 22.5908 8.51906 21.0593C10.1053 19.5277 12.2567 18.6673 14.5 18.6673C16.7433 18.6673 18.8947 19.5277 20.4809 21.0593C22.0672 22.5908 22.9583 24.6681 22.9583 26.834C22.9583 27.1434 23.0856 27.4402 23.3122 27.6589C23.5389 27.8777 23.8462 28.0007 24.1667 28.0007C24.4871 28.0007 24.7945 27.8777 25.0211 27.6589C25.2477 27.4402 25.375 27.1434 25.375 26.834C25.3718 24.0502 24.225 21.3812 22.1863 19.4128C20.1475 17.4443 17.3832 16.3371 14.5 16.334Z" fill="#374957"/>
+                    </G>
+                    <Defs>
+                        <ClipPath id="clip0_profile">
+                            <Rect width="29" height="28" fill="white"/>
+                        </ClipPath>
+                    </Defs>
+                </Svg>
             </View>
         </View>
     );
 }
 
-// Metric Card Component
-function MetricCard({ 
-    label, 
-    value, 
-    subLabel, 
-    icon, 
-    color, 
-    onPress,
-    isDark 
-}: { 
-    label: string; 
-    value: string | number; 
-    subLabel?: string; 
-    icon: string; 
-    color: string; 
-    onPress?: () => void;
-    isDark: boolean;
-}) {
+function HeartRateIcon({ color = "#434F4D" }) {
     return (
-        <TouchableOpacity 
-            style={[styles.metricCard, { backgroundColor: isDark ? '#1C1C1E' : '#FFF' }]}
+        <Svg width={scale(13)} height={scale(13)} viewBox="0 0 13 13" fill="none">
+            <Path d="M3.59912 5.58283H4.95903L5.61397 4.27637L6.87309 6.81589L7.83725 5.58276H9.15461" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+            <Path d="M6.22448 1.55977L6.50003 1.85707L6.77552 1.55977C8.08512 0.146742 10.2083 0.146742 11.5178 1.55977C12.8274 2.9728 12.8274 5.26378 11.5178 6.67683L6.50003 12.0911L1.48217 6.67683C0.172611 5.26378 0.172611 2.9728 1.48217 1.55977C2.79172 0.146742 4.91493 0.146742 6.22448 1.55977Z" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+        </Svg>
+    );
+}
+
+function BrainIcon({ color = "#434F4D" }) {
+    return (
+        <Svg width={scale(12)} height={scale(11)} viewBox="0 0 12 11" fill="none">
+            {/* Top Left Detail */}
+            <Path d="M4.791 7.80637C4.791 7.42773 4.62695 7.06459 4.33491 6.79681C4.04288 6.52903 3.64678 6.37853 3.23371 6.37842C3.20832 6.37842 3.1858 6.38413 3.1604 6.38545" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+
+            {/* Left Hemisphere Main */}
+            <Path d="M4.62905 2.1567C4.79624 2.10503 4.94462 2.01205 5.05784 1.88801C5.17106 1.76397 5.24473 1.61369 5.27073 1.45372C5.29673 1.29376 5.27405 1.13032 5.20519 0.981412C5.13633 0.832508 5.02396 0.703919 4.88046 0.609815C4.73697 0.515712 4.56792 0.459747 4.39195 0.448087C4.21597 0.436427 4.0399 0.469525 3.88314 0.543734C3.72637 0.617943 3.595 0.730382 3.50349 0.868661C3.41198 1.00694 3.3639 1.16569 3.36453 1.32742C3.36584 1.40685 3.3789 1.48576 3.40334 1.56197C3.35016 1.55802 3.29889 1.54704 3.24474 1.54704C2.90921 1.54547 2.57998 1.63047 2.29466 1.79231C2.00934 1.95415 1.77944 2.1863 1.63125 2.46226C1.48306 2.7382 1.42255 3.0468 1.45664 3.35278C1.49072 3.65875 1.61803 3.94977 1.82401 4.19256C1.46179 4.21451 1.12222 4.36188 0.874144 4.60482C0.626066 4.84775 0.488037 5.16806 0.488037 5.50082C0.488037 5.83358 0.626066 6.1539 0.874144 6.39683C1.12222 6.63976 1.46179 6.78714 1.82401 6.80909C1.61826 7.05184 1.49115 7.34275 1.45719 7.64858C1.42323 7.95441 1.4838 8.26283 1.63198 8.53861C1.78015 8.81438 2.00996 9.04639 2.29514 9.20813C2.58032 9.36988 2.90939 9.45483 3.24474 9.45329C3.29889 9.45329 3.35016 9.44319 3.40334 9.43879C3.3523 9.60431 3.35539 9.77991 3.41222 9.94383C3.46905 10.1077 3.57712 10.2528 3.72303 10.3609C3.86894 10.469 4.04627 10.5355 4.23303 10.5521C4.41979 10.5687 4.60775 10.5347 4.77361 10.4543C4.93947 10.3739 5.07593 10.2506 5.16606 10.0997C5.25619 9.94889 5.29603 9.77711 5.28064 9.60569C5.26525 9.43427 5.1953 9.27077 5.07947 9.13546C4.96364 9.00015 4.80703 8.89898 4.62905 8.84451" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+
+            {/* Left Inner Line */}
+            <Path d="M3.1604 4.61526C3.18532 4.61526 3.20832 4.62185 3.23371 4.62185C3.64669 4.62174 4.04272 4.4713 4.33474 4.20361C4.62677 3.93593 4.79088 3.5729 4.791 3.19434" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+
+            {/* Top Right Detail */}
+            <Path d="M7.20898 7.80637C7.20898 7.42773 7.37304 7.06459 7.66508 6.79681C7.95711 6.52903 8.35321 6.37853 8.76628 6.37842C8.79167 6.37842 8.81419 6.38413 8.83959 6.38545" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+
+            {/* Right Hemisphere Main */}
+            <Path d="M7.37089 2.1567C7.2037 2.10503 7.05532 2.01205 6.9421 1.88801C6.82888 1.76397 6.75521 1.61369 6.72921 1.45372C6.70321 1.29376 6.72589 1.13032 6.79475 0.981412C6.86361 0.832508 6.97598 0.703919 7.11947 0.609815C7.26297 0.515712 7.43201 0.459747 7.60799 0.448087C7.78396 0.436427 7.96004 0.469525 8.1168 0.543734C8.27357 0.617943 8.40494 0.730382 8.49645 0.868661C8.58795 1.00694 8.63604 1.16569 8.63541 1.32742C8.6341 1.40685 8.62104 1.48576 8.59659 1.56197C8.64978 1.55758 8.70105 1.54704 8.7552 1.54704C9.09064 1.54554 9.41978 1.63055 9.70502 1.79238C9.99025 1.9542 10.2201 2.1863 10.3683 2.46216C10.5164 2.73803 10.577 3.04654 10.543 3.35245C10.509 3.65835 10.3818 3.94932 10.1759 4.19212C10.5381 4.21407 10.8777 4.36145 11.1258 4.60438C11.3739 4.84731 11.5119 5.16762 11.5119 5.50038C11.5119 5.83314 11.3739 6.15346 11.1258 6.39639C10.8777 6.63932 10.5381 6.7867 10.1759 6.80865C10.3818 7.0514 10.509 7.34235 10.5431 7.64825C10.5771 7.95415 10.5166 8.26266 10.3684 8.53851C10.2202 8.81436 9.99033 9.04643 9.70506 9.2082C9.41979 9.36996 9.09063 9.4549 8.7552 9.45329C8.70105 9.45329 8.64978 9.44319 8.59659 9.43879C8.64763 9.60431 8.64455 9.77991 8.58772 9.94383C8.53089 10.1077 8.42282 10.2528 8.27691 10.3609C8.13099 10.469 7.95366 10.5355 7.76691 10.5521C7.58015 10.5687 7.39219 10.5347 7.22633 10.4543C7.06047 10.3739 6.92401 10.2506 6.83387 10.0997C6.74374 9.94889 6.7039 9.77711 6.7193 9.60569C6.73469 9.43427 6.80464 9.27077 6.92047 9.13546C7.0363 9.00015 7.19291 8.89898 7.37089 8.84451" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+
+            {/* Right Inner Line */}
+            <Path d="M8.83959 4.61526C8.81467 4.61526 8.79167 4.62185 8.76628 4.62185C8.3533 4.62174 7.95727 4.4713 7.66524 4.20361C7.37322 3.93593 7.20911 3.5729 7.20898 3.19434" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+
+            {/* Center Top Curve */}
+            <Path d="M5.28125 0.283473C5.49978 0.16782 5.74767 0.106934 6 0.106934C6.25233 0.106934 6.50022 0.16782 6.71875 0.283473" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+
+            {/* Center Vertical Line */}
+            <Path d="M6 3.3042V7.91618" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
+        </Svg>
+    );
+}
+
+function PersonIcon({ color = "#434F4D" }) {
+    return (
+        <Svg width={scale(10)} height={scale(13)} viewBox="0 0 10 13" fill="none">
+            <G transform="translate(3, 0)">
+                <Path d="M2 3.5C2.82843 3.5 3.5 2.82843 3.5 2C3.5 1.17157 2.82843 0.5 2 0.5C1.17157 0.5 0.5 1.17157 0.5 2C0.5 2.82843 1.17157 3.5 2 3.5Z" stroke={color} strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+            </G>
+            <G transform="translate(0, 3)">
+                <Path d="M6.0526 7.01534L5.00366 4.95761L3.95472 7.01534C3.81169 7.29777 3.43025 7.49951 3.0965 7.49951C2.95346 7.49951 2.81042 7.45916 2.71507 7.41882C2.23827 7.21708 2.04756 6.77325 2.23827 6.36978L3.71633 3.46475V2.94023L1.09397 2.05258C0.617183 1.89119 0.378782 1.44737 0.569499 1.04389C0.773494 0.612325 1.28545 0.382444 1.80916 0.559715C2.33288 0.736991 3.19186 1.04389 4.09776 1.32632C4.39146 1.42988 4.69775 1.48028 5.00366 1.47752C5.30962 1.48028 5.61586 1.42988 5.90957 1.32632C6.81547 1.04389 7.67446 0.736991 8.19817 0.559715C8.72187 0.382444 9.23385 0.612325 9.43782 1.04389C9.62854 1.44737 9.39015 1.89119 8.91335 2.05258L6.291 2.94023V3.46475L7.76905 6.36978C7.95977 6.77325 7.76905 7.21708 7.29226 7.41882C7.1969 7.45916 7.05387 7.49951 6.91083 7.49951C6.57707 7.49951 6.19564 7.29777 6.0526 7.01534Z" stroke={color} strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+            </G>
+        </Svg>
+    );
+}
+
+function LightningIcon({ color = "#434F4D" }) {
+    return (
+        <Svg width={scale(14)} height={scale(14)} viewBox="0 0 14 14" fill="none">
+            <Path d="M8 0.5V5.5H11.5L6 13.5V8.5H2.5L8 0.5Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </Svg>
+    );
+}
+
+// --- NEW ARROW ICON (Scaled) ---
+function TrendArrowIcon({ opacity = 1 }: { opacity?: number }) {
+    return (
+        // Applied opacity directly to the Svg container style
+        <Svg width={scale(51)} height={scale(30)} viewBox="0 0 51 30" fill="none" style={{ opacity }}>
+            <Path d="M33.8572 3H47.5715V16.7143" stroke="#F3F3F3" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+            <Path d="M47.5714 3L28.2 22.3714C27.8796 22.6855 27.4487 22.8615 27 22.8615C26.5513 22.8615 26.1205 22.6855 25.8 22.3714L17.9143 14.4857C17.5938 14.1716 17.163 13.9957 16.7143 13.9957C16.2656 13.9957 15.8347 14.1716 15.5143 14.4857L3 27" stroke="#F3F3F3" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+        </Svg>
+    );
+}
+
+// --- GRAPHS ---
+
+function HeartRateGraph() {
+    return (
+        <Svg width={scale(75)} height={scale(29)} viewBox="0 0 75 29" fill="none">
+            <Rect width="3" height="25.4848" rx="1.5" fill="#FF9DAB" />
+            <Rect x="18" width="3" height="25.4848" rx="1.5" fill="#FF9DAB" />
+            <Rect x="54" width="3" height="25.4848" rx="1.5" fill="#FF9DAB" />
+            <Rect x="36" width="3" height="25.4848" rx="1.5" fill="#FF9DAB" />
+            <Rect x="72" width="3" height="25.4848" rx="1.5" fill="#FF9DAB" />
+            <Rect x="6" y="3.51514" width="3" height="25.4848" rx="1.5" fill="#D9D9D9" />
+            <Rect x="42" y="3.51514" width="3" height="25.4848" rx="1.5" fill="#D9D9D9" />
+            <Rect x="24" y="3.51514" width="3" height="25.4848" rx="1.5" fill="#D9D9D9" />
+            <Rect x="60" y="3.51514" width="3" height="25.4848" rx="1.5" fill="#D9D9D9" />
+            <Rect x="12" y="3.51514" width="3" height="25.4848" rx="1.5" fill="#D9D9D9" />
+            <Rect x="48" y="3.51514" width="3" height="25.4848" rx="1.5" fill="#D9D9D9" />
+            <Rect x="30" y="3.51514" width="3" height="25.4848" rx="1.5" fill="#D9D9D9" />
+            <Rect x="66" y="3.51514" width="3" height="25.4848" rx="1.5" fill="#D9D9D9" />
+        </Svg>
+    );
+}
+
+// ... SleepHeatmap & BioGraph remain unchanged ...
+function SleepHeatmap() {
+    const gridData = [
+        ['#D9D9D9', '#B0AAFF', '#9188FF', '#6255FF', '#2E1DFF', '#B0AAFF'],
+        ['#D9D9D9', '#D9D9D9', '#2E1DFF', '#B0AAFF', '#9188FF', '#D9D9D9'],
+        ['#D9D9D9', '#D9D9D9', '#D9D9D9', '#D9D9D9', '#D9D9D9', '#D9D9D9'],
+        ['#D9D9D9', '#D9D9D9', '#D9D9D9', '#D9D9D9', '#D9D9D9', '#D9D9D9']
+    ];
+
+    return (
+        <View style={styles.heatmapContainer}>
+            {gridData.map((row, rowIndex) => (
+                <View key={rowIndex} style={styles.heatmapRow}>
+                    {row.map((color, colIndex) => {
+                        const isShort = rowIndex === 3 && colIndex >= 4;
+                        return (
+                            <View
+                                key={colIndex}
+                                style={[
+                                    styles.heatmapSquare,
+                                    {
+                                        backgroundColor: color,
+                                        height: isShort ? scale(7) : scale(20),
+                                    }
+                                ]}
+                            />
+                        );
+                    })}
+                </View>
+            ))}
+            <Text style={styles.mapQualityText}>Quality</Text>
+        </View>
+    );
+}
+
+function BioGraph({ percentage = 40 }: { percentage: number }) {
+    const size = scale(92);
+    const radius = size / 2;
+    const strokeWidth = scale(6);
+    const circumference = 2 * Math.PI * (radius - strokeWidth / 2);
+    const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+    return (
+        <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+            <Svg width={size} height={size}>
+                <Circle cx={radius} cy={radius} r={radius - strokeWidth / 2} stroke="#E1E1E1" strokeWidth={strokeWidth} fill="none" />
+                <Circle cx={radius} cy={radius} r={radius - strokeWidth / 2} stroke="#AFF4EE" strokeWidth={strokeWidth} fill="none" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" transform={`rotate(-90 ${radius} ${radius})`} />
+            </Svg>
+            <View style={styles.graphTextContainer}>
+                <Text style={styles.graphMainText}>%{percentage} better</Text>
+                <Text style={styles.graphSubText}>than your age</Text>
+            </View>
+        </View>
+    );
+}
+
+// --- NEW REUSABLE COMPONENTS FOR WIDGETS ---
+
+interface WidgetProps {
+    title: string;
+    height?: number; // Optional height, defaults to Insights height if not set
+    onPress?: () => void; // Added onPress
+    children?: React.ReactNode;
+}
+
+function DashboardWidget({ title, height, onPress, children }: WidgetProps) {
+    // If onPress is provided, wrap in TouchableOpacity, otherwise View
+    const Container = onPress ? TouchableOpacity : View;
+
+    return (
+        <Container
+            style={[styles.widgetContainer, height ? { height } : {}]}
             onPress={onPress}
+            activeOpacity={onPress ? 0.7 : 1}
         >
-            <View style={styles.metricHeader}>
-                <View style={[styles.metricIcon, { backgroundColor: `${color}20` }]}>
-                    <Ionicons name={icon as any} size={20} color={color} />
-                </View>
-                <ThemedText style={styles.metricLabel}>{label}</ThemedText>
-            </View>
-            <View style={styles.metricValueRow}>
-                <ThemedText style={styles.metricValue}>{value}</ThemedText>
-                {subLabel && <ThemedText style={styles.metricSub}>{subLabel}</ThemedText>}
-            </View>
-        </TouchableOpacity>
+            <Text style={styles.widgetTitle}>{title}</Text>
+            {children}
+        </Container>
     );
 }
 
-// Summary Card Component
-function SummaryCard({ 
-    title, 
-    value, 
-    unit, 
-    icon, 
-    color, 
-    subtitle,
-    subtitleBgColor,
-    subtitleTextColor,
-    onPress,
-    isDark 
-}: { 
-    title: string; 
-    value: string | number; 
-    unit?: string; 
-    icon: string; 
-    color: string; 
-    subtitle?: string;
-    subtitleBgColor?: string;
-    subtitleTextColor?: string;
-    onPress?: () => void;
-    isDark: boolean;
-}) {
-    return (
-        <TouchableOpacity 
-            style={[styles.summaryCard, { backgroundColor: isDark ? '#1C1C1E' : '#FFF' }]}
-            onPress={onPress}
-        >
-            <View style={styles.summaryHeader}>
-                <ThemedText style={styles.summaryTitle}>{title}</ThemedText>
-                <View style={[styles.summaryIcon, { backgroundColor: `${color}20` }]}>
-                    <Ionicons name={icon as any} size={16} color={color} />
-                </View>
-            </View>
-            <View style={styles.summaryContent}>
-                <View style={styles.summaryValueRow}>
-                    <ThemedText style={[styles.summaryValue, { color: color }]}>{value}</ThemedText>
-                    {unit && <ThemedText style={styles.summaryUnit}>{unit}</ThemedText>}
-                </View>
-                {subtitle && (
-                    <View style={[styles.summarySubtitle, subtitleBgColor ? { backgroundColor: subtitleBgColor } : null]}>
-                        <ThemedText style={[styles.summarySubtitleText, subtitleTextColor ? { color: subtitleTextColor } : null]}>
-                            {subtitle}
-                        </ThemedText>
-                    </View>
-                )}
-            </View>
-        </TouchableOpacity>
-    );
+// --- ACTIVITY CARD COMPONENT ---
+interface ActivityCardProps {
+    title: string;
+    time: string;
+    duration: string;
+    iconColor?: string;
 }
 
-// Icon Component from frontend assets
-function FrontendIcon({ name, size = 20, color = 'currentColor' }: { name: string; size?: number; color?: string }) {
-    const icons: { [key: string]: React.ReactNode } = {
-        // Activity icons
-        running: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="5" r="2" fill={color} /><Path d="M4 17l4-4 2 2 4-6 4 4" /><Path d="M15 21l-3-3-2 2-4-4" /></Svg>,
-        fitness: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M22 12h-4l-3 9L9 3l-3 9H2" /></Svg>,
-        activity: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M22 12h-4l-3 9L9 3l-3 9H2" /></Svg>,
-        
-        // Heart icons
-        heart: <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}><Path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></Svg>,
-        heartRate: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M3 12h4l3-9 4 18 3-9h4" /></Svg>,
-        
-        // Mind/Sleep icons
-        moon: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></Svg>,
-        leaf: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.77 10-10 10Z M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" /></Svg>,
-        brain: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" /><Path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" /><Path d="M12 5v13" /></Svg>,
-        
-        // Performance icons
-        zap: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></Svg>,
-        'shield-checkmark': <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><Polyline points="9 12 12 15 16 9" /></Svg>,
-        'battery-charging': <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M16 8h-2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2" /><Rect x="4" y="11" width="8" height="8" rx="1" /><Path d="M12 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2" /></Svg>,
-        
-        // Arrow icons
-        'arrow-up': <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Line x1="12" y1="19" x2="12" y2="5" /><Polyline points="5 12 12 5 19 12" /></Svg>,
-        'arrow-down': <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Line x1="12" y1="5" x2="12" y2="19" /><Polyline points="19 12 12 19 5 12" /></Svg>,
-        sunny: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="5" /><Line x1="12" y1="1" x2="12" y2="3" /><Line x1="12" y1="21" x2="12" y2="23" /><Line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><Line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><Line x1="1" y1="12" x2="3" y2="12" /><Line x1="21" y1="12" x2="23" y2="12" /><Line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><Line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></Svg>,
-        
-        // Other icons
-        apps: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Rect x="3" y="3" width="7" height="7" /><Rect x="14" y="3" width="7" height="7" /><Rect x="14" y="14" width="7" height="7" /><Rect x="3" y="14" width="7" height="7" /></Svg>,
-        bulb: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M9 18h6" /><Path d="M10 22h4" /><Path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" /></Svg>,
-        water: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" /></Svg>,
-        walk: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="4" r="2" /><Path d="M15 22v-4l-3-3 1-4 3 3h4" /><Path d="M9 22l1-8-4-2" /></Svg>,
-        flower: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Circle cx="12" cy="12" r="3" /><Circle cx="12" cy="5" r="2" /><Circle cx="12" cy="19" r="2" /><Circle cx="5" cy="12" r="2" /><Circle cx="19" cy="12" r="2" /></Svg>,
-        
-        // Trending icons
-        'trending-up': <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><Polyline points="17 6 23 6 23 12" /></Svg>,
-    };
-    
-    return icons[name] || <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"><Circle cx="12" cy="12" r="10" /></Svg>;
-}
-
-// SmartStack Content Component
-function SmartStackContent({ isDark }: { isDark: boolean }) {
+function ActivityCard({ title, time, duration, iconColor = "#EEE" }: ActivityCardProps) {
     return (
-        <View style={styles.metricsGrid}>
-            <MetricCard
-                label="Performance Potential"
-                value={DEFAULT_METRICS.performancePotential}
-                icon="zap"
-                color="#FF9500"
-                onPress={() => {}}
-                isDark={isDark}
-            />
-            <MetricCard
-                label="Burnout Resistance"
-                value={DEFAULT_METRICS.burnoutResistance10}
-                subLabel="/10"
-                icon="shield-checkmark"
-                color="#34C759"
-                onPress={() => {}}
-                isDark={isDark}
-            />
-            <MetricCard
-                label="Stress Processing"
-                value={DEFAULT_METRICS.stressProcessing10}
-                subLabel="/10"
-                icon="brain"
-                color="#007AFF"
-                onPress={() => {}}
-                isDark={isDark}
-            />
-            <MetricCard
-                label="Regeneration Score"
-                value={DEFAULT_METRICS.regenerationScore10}
-                subLabel="/10"
-                icon="battery-charging"
-                color="#30B0C7"
-                onPress={() => {}}
-                isDark={isDark}
-            />
-        </View>
-    );
-}
-
-// Activities Content Component
-function ActivitiesContent({ isDark }: { isDark: boolean }) {
-    const router = useRouter();
-    
-    return (
-        <View style={styles.activitiesContent}>
-            {ACTIVITIES_DATA.map(activity => (
-                <TouchableOpacity key={activity.id} style={[styles.activityItem, { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' }]} onPress={() => router.push('/activities')}>
-                    <View style={[styles.activityIcon, { backgroundColor: `${activity.color}20` }]}>
-                        <Ionicons name={activity.icon as any} size={20} color={activity.color} />
-                    </View>
-                    <View style={styles.activityContent}>
-                        <ThemedText style={styles.activityTitle}>{activity.title}</ThemedText>
-                        <ThemedText style={styles.activityDesc}>{activity.desc}</ThemedText>
-                        <ThemedText style={styles.activityTime}>{activity.time} • {activity.duration}</ThemedText>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
-                </TouchableOpacity>
-            ))}
-        </View>
-    );
-}
-
-// Insights Content Component
-function InsightsContent({ isDark }: { isDark: boolean }) {
-    const router = useRouter();
-    
-    return (
-        <View style={styles.insightsContent}>
-            {INSIGHTS_DATA.slice(0, 2).map(insight => (
-                <TouchableOpacity 
-                    key={insight.id} 
-                    style={[styles.insightItem, { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' }]}
-                    onPress={() => router.push('/insights' as any)}
+        <View style={styles.activityCard}>
+            {/* Left Column: Text Stack */}
+            <View style={styles.activityTextCol}>
+                <Text
+                    style={styles.activityTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
                 >
-                    <View style={[styles.insightIcon, { backgroundColor: `${insight.color}20` }]}>
-                        <Ionicons name={insight.icon as any} size={20} color={insight.color} />
-                    </View>
-                    <View style={styles.insightContent}>
-                        <ThemedText style={styles.insightTitle}>{insight.title}</ThemedText>
-                        <ThemedText style={styles.insightDesc}>{insight.desc}</ThemedText>
-                    </View>
-                    <View style={[styles.insightMetric, { backgroundColor: `${insight.color}15` }]}>
-                        <ThemedText style={[styles.insightMetricText, { color: insight.color }]}>{insight.metric}</ThemedText>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
-                </TouchableOpacity>
-            ))}
+                    {title}
+                </Text>
+                <View>
+                    <Text style={styles.activityTime} numberOfLines={1}>{time}</Text>
+                    <Text style={styles.activityDuration} numberOfLines={1}>{duration}</Text>
+                </View>
+            </View>
+
+            {/* Right Column: Icon Placeholder */}
+            <View style={styles.activityIconCol}>
+                <View style={[styles.activityIconPlaceholder, { backgroundColor: iconColor }]} />
+            </View>
         </View>
     );
 }
 
-// Tips Content Component
-function TipsContent({ isDark }: { isDark: boolean }) {
-    const router = useRouter();
-    
+function AddActivityButton() {
     return (
-        <View style={styles.tipsContent}>
-            {TIPS_DATA.slice(0, 2).map(tip => (
-                <TouchableOpacity 
-                    key={tip.id} 
-                    style={[styles.tipItem, { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' }]}
-                    onPress={() => router.push('/insights' as any)}
-                >
-                    <View style={[styles.tipIcon, { backgroundColor: `${tip.color}20` }]}>
-                        <Ionicons name={tip.icon as any} size={20} color={tip.color} />
-                    </View>
-                    <View style={styles.tipContent}>
-                        <ThemedText style={styles.tipTitle}>{tip.title}</ThemedText>
-                        <ThemedText style={styles.tipDesc}>{tip.desc}</ThemedText>
-                    </View>
-                    {tip.priority === 'high' && (
-                        <View style={styles.priorityBadge}>
-                            <ThemedText style={styles.priorityText}>Priority</ThemedText>
-                        </View>
-                    )}
-                    <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
-                </TouchableOpacity>
-            ))}
+        <View style={styles.addActivityBtn}>
+            <Svg width={scale(9)} height={scale(9)} viewBox="0 0 9 9" fill="none">
+                <Path d="M4.5 0V9M0 4.5H9" stroke="rgba(106, 116, 114, 0.54)" strokeWidth="2.0" strokeLinecap="round"/>
+            </Svg>
+        </View>
+    );
+}
+
+// --- NEW HEALTH TIP CARD ---
+interface HealthTipCardProps {
+    title: string;
+    body: string;
+}
+
+function HealthTipCard({ title, body }: HealthTipCardProps) {
+    return (
+        <View style={styles.healthTipCard}>
+            <Text style={styles.healthTipTitle}>{title}</Text>
+            <Text style={styles.healthTipBody}>{body}</Text>
         </View>
     );
 }
 
 export default function DashboardScreen() {
     const router = useRouter();
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
-    const sleepQuality = DEFAULT_METRICS.sleepQuality;
-    const sleepQualityHigh = sleepQuality > 80;
-    const sleepSubtitleBg = sleepQualityHigh ? '#ecfdf5' : '#fff7ed';
-    const sleepSubtitleText = sleepQualityHigh ? '#047857' : '#c2410c';
+    const bioPercentage = 40;
 
     return (
         <ScreenBackground style={styles.container}>
-
-            <ScrollView 
+            <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+                <ScrollView
                     style={styles.scrollView}
-                    showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContent}
-            >
-                {/* Biological Age Card */}
-                <View style={styles.section}>
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.header}>
+                        <Text style={styles.greeting}>Hello Buse,</Text>
+                        <TouchableOpacity onPress={() => router.push('/profile')}>
+                            <ProfileIcon />
+                        </TouchableOpacity>
+                    </View>
+
                     <TouchableOpacity
-                        style={[styles.bioAgeCard, { backgroundColor: isDark ? '#1C1C1E' : '#FFF' }]}
-                        activeOpacity={0.9}
+                        style={styles.bigWidget}
                         onPress={() => router.push('/graphs')}
+                        activeOpacity={0.9} // Subtle press effect for large cards
                     >
-                        <ThemedText style={styles.cardTitle}>Biological Age</ThemedText>
-                        <View style={styles.bioAgeLayout}>
-                            <View style={styles.bioAgeValueRow}>
-                                <ThemedText style={styles.bioAgeValue}>{DEFAULT_METRICS.biologicalAge}</ThemedText>
-                                <ThemedText style={styles.bioAgeLabel}>years</ThemedText>
+
+                        {/* TOP ROW */}
+                        <View style={styles.bigWidgetTopRow}>
+                            <View style={styles.innerCard}>
+                                <View style={styles.cardHeader}>
+                                    <View style={{ transform: [{ scale: scale(1) }] }}>
+                                        <BioIcon />
+                                    </View>
+                                    <Text style={styles.cardTitle}>Biological Age</Text>
+                                </View>
+                                <View style={styles.bioContent}>
+                                    <View style={styles.bioTextContainer}>
+                                        <Text style={styles.bioValue}>30</Text>
+                                        <Text style={styles.bioUnit}>years</Text>
+                                    </View>
+                                    <BioGraph percentage={bioPercentage} />
+                                </View>
                             </View>
-                            <Gauge 
-                                score={DEFAULT_METRICS.comparisonScore} 
-                                text={DEFAULT_METRICS.comparisonScore >= 0 ? 'better than your age' : 'worse than your age'}
-                                isDark={isDark}
-                            />
+
+                            <View style={styles.innerCard}>
+                                <View style={styles.cardHeader}>
+                                    <View style={{ transform: [{ scale: scale(1) }] }}>
+                                        <SleepIcon />
+                                    </View>
+                                    <Text style={styles.cardTitle}>Sleep</Text>
+                                </View>
+                                <SleepHeatmap />
+                                <View style={styles.sleepFooter}>
+                                    <View style={{flexDirection: 'row', alignItems: 'baseline'}}>
+                                        <Text style={styles.sleepValue}>7.20</Text>
+                                        <Text style={styles.sleepUnit}>hr</Text>
+                                    </View>
+                                    <Text style={styles.sleepQuality}>%89</Text>
+                                </View>
+                            </View>
                         </View>
+
+                        {/* BOTTOM ROW */}
+                        <View style={styles.bigWidgetBottomRow}>
+
+                            {/* 1. Avg Heart Rate */}
+                            <View style={styles.statCard}>
+                                <View style={styles.statHeader}>
+                                    <HeartRateIcon />
+                                    <Text style={styles.statTitle}>Avg.{'\n'}Heart Rate</Text>
+                                </View>
+
+                                <View style={styles.hrGraphPosition}>
+                                    <HeartRateGraph />
+                                </View>
+
+                                {/* UPDATED: Positioned absolute bottom-right */}
+                                <View style={styles.hrValueContainer}>
+                                    <Text style={styles.msLabel}>ms</Text>
+                                    <Text style={styles.hrValue}>99</Text>
+                                </View>
+                            </View>
+
+                            {/* 2. Burnout Res. */}
+                            <View style={styles.statCard}>
+                                <View style={styles.statHeader}>
+                                    <BrainIcon />
+                                    <Text style={styles.statTitle}>Burnout{'\n'}Res.</Text>
+                                </View>
+                                <View style={styles.statContent}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={styles.statValue}>8.2</Text>
+                                        <Text style={styles.statValueUnit}>/10</Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* 3. Per. Potential */}
+                            <View style={styles.statCard}>
+                                <View style={styles.statHeader}>
+                                    <PersonIcon />
+                                    <Text style={styles.statTitle}>Per.{'\n'}Potential</Text>
+                                </View>
+                                <View style={styles.statContent}>
+                                    <Text style={styles.statValue}>%94</Text>
+                                </View>
+                            </View>
+
+                            {/* 4. Regen Score */}
+                            <View style={styles.statCard}>
+                                <View style={styles.statHeader}>
+                                    <LightningIcon />
+                                    <Text style={styles.statTitle}>Regen.{'\n'}Score</Text>
+                                </View>
+                                <View style={styles.statContent}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={styles.statValue}>7.5</Text>
+                                        <Text style={styles.statValueUnit}>/10</Text>
+                                    </View>
+                                </View>
+                            </View>
+
+                        </View>
+
                     </TouchableOpacity>
-                </View>
 
-                {/* Health Overview Section */}
-                <View style={[styles.section, styles.sectionWithSpacing]}>
-                    <ThemedText style={styles.sectionTitle}>Health Overview</ThemedText>
-                    
-                    {/* Vitals Row - Heart Rate & Sleep */}
-                    <View style={styles.vitalsRow}>
-                        <SummaryCard
-                            title="Avg Heart Rate"
-                            value={DEFAULT_METRICS.avgHeartRate}
-                            unit="bpm"
-                            icon="heart"
-                            color="#FF2D55"
-                            onPress={() => router.push('/graphs')}
-                            isDark={isDark}
-                        />
-                        <SummaryCard
-                            title="Sleep"
-                            value={DEFAULT_METRICS.sleepDuration}
-                            icon="moon"
-                            color="#AF52DE"
-                            subtitle={`Sleep Quality: ${sleepQuality}%`}
-                            subtitleBgColor={sleepSubtitleBg}
-                            subtitleTextColor={sleepSubtitleText}
-                            onPress={() => router.push('/graphs')}
-                            isDark={isDark}
-                        />
-                    </View>
+                    {/* --- NEW WIDGETS SECTION --- */}
+                    <View style={{ gap: scale(10), marginTop: scale(10) }}>
 
-                    {/* Performance Metrics Grid - 2x2 */}
-                    <View style={styles.metricsGrid}>
-                        <MetricCard
-                            label="Performance Potential"
-                            value={DEFAULT_METRICS.performancePotential}
-                            icon="flash"
-                            color="#FF9500"
-                            onPress={() => router.push('/graphs')}
-                            isDark={isDark}
-                        />
-                        <MetricCard
-                            label="Burnout Resistance"
-                            value={DEFAULT_METRICS.burnoutResistance10}
-                            subLabel="/10"
-                            icon="pulse"
-                            color="#EFD516"
-                            onPress={() => router.push('/graphs')}
-                            isDark={isDark}
-                        />
-                        <MetricCard
-                            label="Stress Processing"
-                            value={DEFAULT_METRICS.stressProcessing10}
-                            subLabel="/10"
-                            icon="pulse"
-                            color="#007AFF"
-                            onPress={() => router.push('/graphs')}
-                            isDark={isDark}
-                        />
-                        <MetricCard
-                            label="Regeneration Score"
-                            value={DEFAULT_METRICS.regenerationScore10}
-                            subLabel="/10"
-                            icon="battery-charging"
-                            color="#30B0C7"
-                            onPress={() => router.push('/graphs')}
-                            isDark={isDark}
-                        />
-                    </View>
-                </View>
+                        {/* 1. Insights Widget */}
+                        <DashboardWidget title="Insights" onPress={() => router.push('/insights')}>
+                            <View style={styles.insightsRow}>
 
-                {/* Recent Activities Section */}
-                <View style={styles.section}>
-                    <View style={[styles.sectionCard, { backgroundColor: isDark ? '#1C1C1E' : '#FFF' }]}>
-                        <View style={styles.sectionHeader}>
-                            <View style={styles.sectionHeaderLeft}>
-                                <View style={[styles.sectionIcon, { backgroundColor: '#FF6B3520' }]}>
-                                    <Ionicons name="fitness" size={20} color="#FF6B35" />
-                                </View>
-                                <ThemedText style={styles.sectionTitleText}>Activities</ThemedText>
+                                {/* Recovery Improving Card */}
+                                <LinearGradient
+                                    colors={['#F2F2F2', '#BDE3C6']}
+                                    locations={[0.60, 1.0]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.insightCard}
+                                >
+                                    <View style={styles.insightArrow}>
+                                        {/* UPDATED OPACITY: Darker than before, but still inactive */}
+                                        <TrendArrowIcon opacity={1.0} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.insightCardTitle}>Recovery Improving</Text>
+                                        <Text style={styles.insightCardBody}>
+                                            Your HRV has increased by 11.5 % compared to your baseline.
+                                        </Text>
+                                    </View>
+
+                                </LinearGradient>
+
+                                {/* Sleep Quality Impact */}
+                                <LinearGradient
+                                    colors={['#F2F2F2', '#EBD6FF']}
+                                    locations={[0.60, 1.0]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.insightCard}
+                                >
+                                    <View style={styles.insightArrow}>
+                                        {/* UPDATED OPACITY: Softens the solid #F3F3F3 */}
+                                        <TrendArrowIcon opacity={1.0} />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.insightCardTitle}>Sleep Quality Impact</Text>
+                                        <Text style={styles.insightCardBody}>
+                                            Your HRV is highest after nights with 7+ hours of sleep.
+                                        </Text>
+                                    </View>
+
+                                </LinearGradient>
+
                             </View>
-                        </View>
-                        <View style={styles.sectionContent}>
-                            <ActivitiesContent isDark={isDark} />
-                        </View>
-                    </View>
-                </View>
+                        </DashboardWidget>
 
-                {/* Insights Section */}
-                <View style={styles.section}>
-                    <View style={[styles.sectionCard, { backgroundColor: isDark ? '#1C1C1E' : '#FFF' }]}>
-                        <View style={styles.sectionHeader}>
-                            <View style={styles.sectionHeaderLeft}>
-                                <View style={[styles.sectionIcon, { backgroundColor: '#34C75920' }]}>
-                                    <Ionicons name="bulb" size={20} color="#34C759" />
-                                </View>
-                                <ThemedText style={styles.sectionTitleText}>Insights</ThemedText>
-                            </View>
-                        </View>
-                        <View style={styles.sectionContent}>
-                            <InsightsContent isDark={isDark} />
-                        </View>
-                    </View>
-                </View>
+                        {/* 2. Activities Widget */}
+                        <DashboardWidget title="Activities" onPress={() => router.push('/activities')}>
+                            <View style={styles.activitiesRow}>
+                                {/* Activity 1: Morning Run */}
+                                <ActivityCard
+                                    title="Morning Run"
+                                    time="8:30 AM"
+                                    duration="32 min"
+                                    iconColor="#FDE68A" // Yellow placeholder
+                                />
 
-                {/* Tips Section */}
-                <View style={styles.section}>
-                    <View style={[styles.sectionCard, { backgroundColor: isDark ? '#1C1C1E' : '#FFF' }]}>
-                        <View style={styles.sectionHeader}>
-                            <View style={styles.sectionHeaderLeft}>
-                                <View style={[styles.sectionIcon, { backgroundColor: '#AF52DE20' }]}>
-                                    <Ionicons name="leaf" size={20} color="#AF52DE" />
-                                </View>
-                                <ThemedText style={styles.sectionTitleText}>Health Tips</ThemedText>
+                                {/* Activity 2: Meditation */}
+                                <ActivityCard
+                                    title="Meditation"
+                                    time="12:00 PM"
+                                    duration="15 min"
+                                    iconColor="#BAE6FD" // Blue placeholder
+                                />
+
+                                {/* Activity 3: Sleep */}
+                                <ActivityCard
+                                    title="Sleep"
+                                    time="10:30 PM"
+                                    duration="7h 20m"
+                                    iconColor="#E9D5FF" // Purple placeholder
+                                />
+
+                                {/* Add Button */}
+                                <AddActivityButton />
                             </View>
-                        </View>
-                        <View style={styles.sectionContent}>
-                            <TipsContent isDark={isDark} />
-                        </View>
+                        </DashboardWidget>
+
+                        {/* 3. HEALTH TIPS WIDGET */}
+                        <DashboardWidget title="Health Tips" onPress={() => router.push('/insights')}>
+                            <View style={styles.activitiesRow}>
+                                <HealthTipCard
+                                    title="Prioritize Rest"
+                                    body="Your body needs recovery time"
+                                />
+                                <HealthTipCard
+                                    title="Stay Hydrated"
+                                    body="Aim for 3 liters today"
+                                />
+                                <HealthTipCard
+                                    title="Avoid Screens"
+                                    body="Screen-free 3 hours"
+                                />
+                            </View>
+                        </DashboardWidget>
+
                     </View>
-                </View>
-            </ScrollView>
-    </ScreenBackground>
+
+                </ScrollView>
+            </SafeAreaView>
+        </ScreenBackground>
     );
 }
 
-// Gauge Styles
-const gaugeStyles = StyleSheet.create({
-    wrapper: {
-        width: 170,
-        height: 170,
-        justifyContent: 'center',
+const styles = StyleSheet.create({
+    container: { flex: 1 },
+    scrollView: { flex: 1 },
+    scrollContent: {
+        paddingHorizontal: scale(18),
+        paddingTop: scale(10),
+        paddingBottom: scale(110),
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: scale(20),
+        paddingHorizontal: scale(4),
+    },
+    greeting: {
+        color: '#434F4D',
+        fontSize: scale(22),
+        fontWeight: '700',
+        lineHeight: scale(41),
+        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+        textShadowColor: 'rgba(0, 0, 0, 0.25)',
+        textShadowOffset: { width: 0, height: scale(2) },
+        textShadowRadius: scale(11),
+        fontVariant: ['no-common-ligatures'],
+    },
+
+    bigWidget: {
+        width: '100%',
+        height: scale(297),
+        backgroundColor: '#FDFDFD',
+        borderRadius: scale(20),
+        alignSelf: 'center',
+        shadowColor: 'rgb(61, 78, 74)',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.25,
+        shadowRadius: scale(13),
+        elevation: 5,
+        padding: scale(13),
+        justifyContent: 'space-between'
+    },
+
+    bigWidgetTopRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: scale(13),
+        height: scale(173),
+    },
+
+    innerCard: {
+        flex: 1,
+        height: '100%',
+        backgroundColor: '#F2F2F2',
+        borderRadius: scale(11),
+        padding: scale(12),
+        justifyContent: 'space-between'
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale(8),
+    },
+    cardTitle: {
+        color: '#434F4D',
+        fontSize: scale(14),
+        fontWeight: '600',
+        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+    },
+
+    // Bio
+    bioContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: scale(15),
+    },
+    bioTextContainer: {
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        paddingLeft: scale(5),
+    },
+    bioValue: {
+        fontSize: scale(22),
+        fontWeight: '700',
+        color: '#98D4CE',
+        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+    },
+    bioUnit: {
+        fontSize: scale(10),
+        fontWeight: '700',
+        color: '#434F4D',
+        marginTop: scale(2),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+    },
+
+    graphTextContainer: {
+        position: 'absolute',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '65%',
+    },
+    graphMainText: {
+        fontSize: scale(10),
+        color: '#BCBCBC',
+        fontWeight: '700',
+        textAlign: 'center',
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+    },
+    graphSubText: {
+        fontSize: scale(10),
+        color: '#BCBCBC',
+        textAlign: 'center',
+        fontWeight: '700',
+        marginTop: scale(1),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+    },
+
+    // Heatmap
+    heatmapContainer: {
+        width: '100%',
+        height: scale(92),
+        justifyContent: 'space-between',
+        marginTop: scale(2),
         position: 'relative',
     },
-    svg: {
+    heatmapRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    heatmapSquare: {
+        width: scale(20),
+        height: scale(20),
+        borderRadius: scale(4),
+    },
+    mapQualityText: {
         position: 'absolute',
-    },
-    content: {
-        position: 'absolute',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    stack: {
-        alignItems: 'center',
-    },
-    value: {
-        fontSize: 24,
-        fontWeight: '700',
-    },
-    note: {
-        fontSize: 11,
+        bottom: scale(1),
+        right: 0,
+        width: scale(45),
         textAlign: 'center',
-        marginTop: 4,
-        maxWidth: 80,
-        color: '#8E8E93',
+        fontSize: scale(11),
+        fontWeight: '700',
+        color: '#D9D9D9',
+        letterSpacing: 0.5,
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-});
 
-// Main Styles
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingBottom: 100,
-    },
-    
-    // Sections
-    section: {
-        paddingHorizontal: 20,
-        marginTop: 20,
-    },
-    sectionWithSpacing: {
-        paddingHorizontal: 20,
-        marginTop: 32,
-    },
-    sectionTitle: {
-        fontSize: 22,
-        fontWeight: '700',
-        marginBottom: 16,
-    },
-    
-    // Biological Age Card
-    bioAgeCard: {
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
-        minHeight: 220,
-    },
-    bioAgeLayout: {
+    sleepFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 15,
+        alignItems: 'flex-end',
+        marginTop: scale(2),
     },
-    bioAgeValueRow: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        gap: 6,
-    },
-    bioAgeValue: {
-        fontSize: 48,
+    sleepValue: {
+        fontSize: scale(22),
         fontWeight: '700',
-        lineHeight: 50,
+        color: '#B0AAFF',
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    bioAgeLabel: {
-        fontSize: 16,
-        color: '#8E8E93',
-        marginTop: 0,
+    sleepUnit: {
+        fontSize: scale(10),
+        fontWeight: '700',
+        color: '#D9D9D9',
+        marginLeft: scale(2),
+        marginBottom: scale(3),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    
-    // Vitals Row
-    vitalsRow: {
-        flexDirection: 'row',
-        gap: 12,
-        marginBottom: 24,
+    sleepQuality: {
+        fontSize: scale(20),
+        fontWeight: '700',
+        color: '#2E1DFF',
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    summaryCard: {
-        flex: 1,
-        borderRadius: 12,
-        padding: 18,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
-        minHeight: 150,
-    },
-    summaryHeader: {
+
+    // --- BOTTOM ROW STYLES ---
+    bigWidgetBottomRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
+        gap: scale(9),
+        height: scale(86),
     },
-    summaryTitle: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#8E8E93',
+
+    statCard: {
+        flex: 1,
+        backgroundColor: '#F2F2F2',
+        borderRadius: scale(12),
+        // REDUCED PADDING to fit the 75px graph
+        paddingHorizontal: scale(2),
+        paddingVertical: scale(8),
+        justifyContent: 'space-between',
     },
-    summaryIcon: {
-        width: 32,
-        height: 32,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    summaryContent: {
+
+    statHeader: {
+        flexDirection: 'row',
         alignItems: 'flex-start',
-        width: '100%',
+        gap: scale(4),
+        paddingHorizontal: scale(2), // Re-add padding for text clarity
     },
-    summaryValueRow: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        gap: 4,
-        marginBottom: 8,
-    },
-    summaryValue: {
-        fontSize: 32,
-        fontWeight: '700',
-        lineHeight: 38,
-    },
-    summaryUnit: {
-        fontSize: 16,
-        color: '#8E8E93',
-        fontWeight: '500',
-        lineHeight: 20,
-    },
-    summarySubtitle: {
-        backgroundColor: '#F2F2F7',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
-        borderWidth: 1,
-        borderColor: 'transparent',
-        alignSelf: 'stretch',
-        marginTop: 4,
-    },
-    summarySubtitleText: {
-        fontSize: 12,
+    statTitle: {
+        fontSize: scale(9),
         fontWeight: '600',
-        color: '#8E8E93',
-        flexShrink: 1,
-        flexWrap: 'wrap',
-        lineHeight: 16,
+        color: '#434F4D',
+        lineHeight: scale(11),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    
-    // Metrics Grid
-    metricsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
+
+    // Heart Rate Specifics
+    hrGraphPosition: {
+        position: 'absolute',
+        top: scale(36), //
+        left: 0,
+        right: 0,
+        alignItems: 'center', // Center graph in card
     },
-    metricCard: {
-        width: (width - 52) / 2,
-        borderRadius: 12,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
-        backgroundColor: 'transparent',
-    },
-    metricHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 12,
-    },
-    metricIcon: {
-        width: 32,
-        height: 32,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    metricLabel: {
-        fontSize: 13,
-        fontWeight: '500',
-        color: '#8E8E93',
-        flex: 1,
-    },
-    metricValueRow: {
+    // UPDATED: Absolute position for "ms 99"
+    hrValueContainer: {
+        position: 'absolute',
+        bottom: scale(3),
+        right: scale(4),
         flexDirection: 'row',
         alignItems: 'baseline',
-        gap: 4,
     },
-    metricValue: {
-        fontSize: 24,
+    msLabel: {
+        fontSize: scale(9),
+        fontWeight: '600',
+        color: '#848484',
+        marginRight: scale(2),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+    },
+    hrValue: {
+        fontSize: scale(15),
         fontWeight: '700',
+        color: '#434F4D',
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    metricSub: {
-        fontSize: 14,
-        color: '#8E8E93',
-        fontWeight: '500',
+
+    // General Stats
+    statContent: {
+        alignItems: 'flex-end',
+        justifyContent: 'flex-end',
+        flex: 1,
+        paddingRight: scale(4), // Alignment buffer
     },
-    
-    // Section Styles (like insights page)
-    sectionCard: {
-        borderRadius: 12,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+    statValue: {
+        fontSize: scale(27),
+        fontWeight: '700',
+        color: '#434F4D',
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    sectionHeader: {
+    statValueUnit: {
+        fontSize: scale(15),
+        fontWeight: '600',
+        color: '#8F8F8F',
+        marginLeft: scale(1),
+        marginBottom: scale(3),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+    },
+    // --- NEW WIDGET STYLES ---
+    widgetContainer: {
+        width: '100%',
+        backgroundColor: '#FDFDFD',
+        borderRadius: scale(20),
+        shadowColor: 'rgb(61, 78, 74)',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.25,
+        shadowRadius: scale(13),
+        elevation: 5,
+        paddingHorizontal: scale(17), // Padding for title alignment
+        paddingTop: scale(15),
+        paddingBottom: scale(15),
+    },
+    widgetTitle: {
+        color: '#434F4D', //
+        fontSize: scale(16),
+        fontWeight: '600',
+        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+        marginBottom: scale(10), // Spacing between title and content
+    },
+    // --- INSIGHTS STYLES (Fixed) ---
+    insightsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F2F2F7',
+        gap: scale(7),
     },
-    sectionHeaderLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    sectionIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    sectionTitleText: {
-        fontSize: 18,
-        fontWeight: '600',
-    },
-    sectionContent: {
-        padding: 16,
-    },
-    
-    // SmartStack Content
-    smartStackContent: {
-        // Content styles handled by metricsGrid
-    },
-    
-    // Card Styles
-    cardTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        marginBottom: 10,
-    },
-    
-    // Quick Actions
-    quickActionsGrid: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    quickAction: {
+    insightCard: {
         flex: 1,
-        padding: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        height: scale(56),
+        borderRadius: scale(14),
+        // Precise Redline Paddings
+        paddingTop: scale(13),
+        paddingLeft: scale(8),
+        paddingRight: scale(8),
+        paddingBottom: scale(8),
+        flexDirection: 'row',
+        position: 'relative',
+        overflow: 'hidden',
     },
-    quickActionIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 14,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 10,
+    insightCardTitle: {
+        fontSize: scale(9),
+        fontWeight: '600',
+        color: '#434F4D',
+        marginBottom: scale(3), // Gap
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    quickActionLabel: {
-        fontSize: 15,
-        fontWeight: '500',
-        color: '#8E8E93',
-        textAlign: 'center',
+    insightCardBody: {
+        fontSize: scale(8),
+        fontWeight: '600',
+        color: 'rgba(67, 79, 77, 0.71)',
+        lineHeight: scale(10),
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    
-    // Activities Content
-    activitiesContent: {
-        gap: 8,
+    insightArrow: {
+        position: 'absolute',
+        right: scale(12), // Positioned away from edge
+        bottom: scale(8), // Positioned away from edge
     },
-    activityItem: {
+    // --- ACTIVITIES STYLES ---
+    activitiesRow: {
+        flexDirection: 'row',
+        gap: scale(6), // Gap between items
+    },
+    activityCard: {
+        flex: 1, // Equal width for cards
+        height: scale(56),
+        backgroundColor: '#F2F2F2',
+        borderRadius: scale(14),
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        borderRadius: 8,
-        gap: 12,
+        paddingHorizontal: scale(8),
+        justifyContent: 'space-between', // Pushes icon to right
     },
-    activityIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    activityContent: {
+    activityTextCol: {
         flex: 1,
+        height: '100%',
+        justifyContent: 'center',
+        paddingVertical: scale(6),
+        gap: scale(1), // Add gap between title and bottom text
     },
     activityTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginBottom: 2,
-    },
-    activityDesc: {
-        fontSize: 14,
-        color: '#8E8E93',
-        marginBottom: 2,
+        fontSize: scale(9),
+        fontWeight:'600',
+        color: '#434F4D',
+        marginBottom: scale(1),
     },
     activityTime: {
-        fontSize: 12,
-        color: '#8E8E93',
-    },
-    
-    // Insights Content
-    insightsContent: {
-        gap: 8,
-    },
-    insightItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        borderRadius: 8,
-        gap: 12,
-    },
-    insightIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    insightContent: {
-        flex: 1,
-    },
-    insightTitle: {
-        fontSize: 15,
-        fontWeight: '600',
-        marginBottom: 2,
-    },
-    insightDesc: {
-        fontSize: 13,
-        color: '#8E8E93',
-        lineHeight: 16,
-    },
-    insightMetric: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
-    },
-    insightMetricText: {
-        fontSize: 12,
+        fontSize: scale(10), //
         fontWeight: '700',
+        color: '#6A7472',
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    
-    // Tips Content
-    tipsContent: {
-        gap: 8,
+    activityDuration: {
+        fontSize: scale(12), //
+        fontWeight: '700',
+        color: '#434F4D',
+        ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    tipItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        borderRadius: 8,
-        gap: 12,
-    },
-    tipIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 8,
+    activityIconCol: {
+        width: scale(30),
+        height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    tipContent: {
-        flex: 1,
+    activityIconPlaceholder: {
+        width: scale(24),
+        height: scale(24),
+        borderRadius: scale(12),
     },
-    tipTitle: {
-        fontSize: 15,
+    addActivityBtn: {
+        width: scale(20), //
+        height: scale(20),
+        borderRadius: scale(7),
+        backgroundColor: '#F2F2F2',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'center',
+    },
+    // --- HEALTH TIPS STYLES ---
+    healthTipCard: {
+        flex: 1, // Proportional scaling
+        height: scale(56), // Matches Activity Card height
+        backgroundColor: '#F2F2F2', // Light grey
+        borderRadius: scale(14),
+        // Padding from and
+        paddingTop: scale(7),
+        paddingLeft: scale(8),
+        paddingRight: scale(8),
+        paddingBottom: scale(4),
+        justifyContent: 'flex-start',
+    },
+    healthTipTitle: {
+        //
+        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }), // Standard SF Pro
+        fontSize: scale(9),
         fontWeight: '600',
-        marginBottom: 2,
+        color: '#434F4D',
+        marginBottom: scale(3), // Gap
     },
-    tipDesc: {
-        fontSize: 13,
-        color: '#8E8E93',
-    },
-    priorityBadge: {
-        backgroundColor: '#FFF3CD',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    priorityText: {
-        fontSize: 10,
+    healthTipBody: {
+        //
+        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }), // Standard SF Pro
+        fontSize: scale(8),
         fontWeight: '600',
-        color: '#856404',
-    },
+        color: 'rgba(67, 79, 77, 0.71)',
+        lineHeight: scale(10),
+    }
 });

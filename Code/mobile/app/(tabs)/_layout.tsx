@@ -1,10 +1,15 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { TabBarIcon } from '@/components/ui/TabBarIcon';
 import { HapticTab } from '@/components/haptic-tab';
 import CustomHeader from '@/components/Header';
+
+// --- RESPONSIVE SCALING UTILITY ---
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const FIGMA_WIDTH = 402; // Your design width
+const scale = (size: number) => (SCREEN_WIDTH / FIGMA_WIDTH) * size;
 
 export default function TabLayout() {
 
@@ -12,7 +17,7 @@ export default function TabLayout() {
         <Tabs
             backBehavior="history"
             screenOptions={{
-                headerShown: true,
+                headerShown: false,
                 tabBarShowLabel: false,
                 tabBarButton: HapticTab,
                 tabBarActiveTintColor: '#000000',
@@ -24,23 +29,23 @@ export default function TabLayout() {
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    height: 90,
+                    height: scale(90), // Scaled
                     borderTopWidth: 0,
                     elevation: 0,
                     backgroundColor: 'transparent',
 
                     // --- THE FIX ---
                     // Apply the radius here too, so the shadow follows the curve
-                    borderTopLeftRadius: 34,   // Matches your maskWrapper
-                    borderTopRightRadius: 34,
+                    borderTopLeftRadius: scale(34),   // Scaled
+                    borderTopRightRadius: scale(34),  // Scaled
                     // ----------------
 
                     shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 10 },
+                    shadowOffset: { width: 0, height: scale(10) }, // Scaled
                     shadowOpacity: 0.15,
-                    shadowRadius: 20,
+                    shadowRadius: scale(20), // Scaled
 
-                    paddingTop: 19,
+                    paddingTop: scale(19), // Scaled
                 },
 
                 // 2. The Glass Layer
@@ -50,20 +55,14 @@ export default function TabLayout() {
                            Property: backdrop-filter: blur(40px)
                         */}
                         <BlurView
-                            intensity={40} // EXACTLY matching Figma's 40px blur
-                            tint="light"   // "light" + White Overlay = Hard Light simulation
+                            intensity={40} // Kept exact original
+                            tint="light"   // Kept exact original
                             style={StyleSheet.absoluteFill}
                         >
-                            {/* Figma Layer: Fill & Blend Mode Simulation
-                               Figma uses: rgba(0,0,0, 0.21) + Hard Light
-
-                               React Native Equivalent:
-                               To mimic 'Hard Light' (which brightens/contrasts) on a light UI,
-                               we use a white overlay. A 21% black layer would just look grey.
-                            */}
+                            {/* Figma Layer: Fill & Blend Mode Simulation */}
                             <View style={{
                                 ...StyleSheet.absoluteFillObject,
-                                backgroundColor: 'rgba(255, 255, 255, 0.35)',
+                                backgroundColor: 'rgba(255, 255, 255, 0.35)', // Kept exact original
                             }} />
                         </BlurView>
                     </View>
@@ -124,8 +123,8 @@ const styles = StyleSheet.create({
     maskWrapper: {
         flex: 1,
         // Figma Shape: border-radius: 34px
-        borderTopLeftRadius: 34,
-        borderTopRightRadius: 34,
-        overflow: 'hidden', // Clips the BlurView to the radius
+        borderTopLeftRadius: scale(34),  // Scaled
+        borderTopRightRadius: scale(34), // Scaled
+        overflow: 'hidden',
     },
 });

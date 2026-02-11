@@ -74,7 +74,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         //put Metro's IP, mine was 192.168.0.27
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8081", "http://192.168.0.27:8081"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8081", "exp://192.168.31.108:8081"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
