@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   
   dashedLineContainer: { 
     position: 'absolute', 
-    top: 25, // Çizgiyi yukarı taşı
+    top: 20, // Çizgiyi yukarı taşı
     left: 0, 
     right: 0, 
     zIndex: 0 
