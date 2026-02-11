@@ -8,6 +8,9 @@ import {
   Switch,
   ScrollView,
   Dimensions,
+  Linking, // <-- 1. Linking eklendi
+  Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
@@ -15,7 +18,38 @@ import { ScreenBackground } from '@/components/ui/ScreenBackground';
 const { width } = Dimensions.get('window');
 
 const Sensors: React.FC = () => {
+  // iOS'ta Bluetooth'u programatik olarak açıp kapatamazsın, 
+  // bu yüzden state sadece görsel amaçlıdır.
   const [isBluetoothEnabled, setIsBluetoothEnabled] = useState(true);
+
+  // --- AYARLARI AÇMA FONKSİYONU ---
+  const openBluetoothSettings = () => {
+    if (Platform.OS === 'ios') {
+      // iOS'ta direkt Bluetooth ayarlarına gitmek bazen kısıtlanabilir,
+      // bu komut genellikle ana ayarlara atar.
+      Linking.openURL('App-Prefs:root=Bluetooth').catch(() => {
+        Linking.openSettings(); // Hata verirse uygulamanın ayarlarına git
+      });
+    } else {
+      // Android için direkt Bluetooth ayarları
+      Linking.sendIntent('android.settings.BLUETOOTH_SETTINGS');
+    }
+  };
+
+  const handleToggle = (value: boolean) => {
+    setIsBluetoothEnabled(value);
+    // Kullanıcı kapatmaya çalıştığında uyarı verip ayarlara yönlendirebiliriz
+    if (!value) {
+        Alert.alert(
+            "Bluetooth Settings",
+            "To turn off Bluetooth, please go to your device settings.",
+            [
+                { text: "Cancel", style: "cancel", onPress: () => setIsBluetoothEnabled(true) },
+                { text: "Open Settings", onPress: openBluetoothSettings }
+            ]
+        );
+    }
+  };
 
   return (
     <ScreenBackground style={styles.container}>
@@ -23,16 +57,14 @@ const Sensors: React.FC = () => {
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={styles.scrollContent}
       >
-       
-
-        {/* Status Message Rectangle */}
+        {/* Status Message */}
         <View style={styles.statusRectangle}>
-          <Text style={styles.statusText}>
-            You currently don’t have{"\n"}a connected sensor.
+          <Text style={styles.statusText} numberOfLines={2} adjustsFontSizeToFit={false}>
+            You currently don{'\u2019'}t have{'\n'}a connected sensor.
           </Text>
         </View>
 
-        {/* Connection Section */}
+        {/* Connect Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionLabel}>Connect with</Text>
           
@@ -48,53 +80,63 @@ const Sensors: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Bluetooth Section - Title Outside */}
-        <Text style={styles.sectionLabelOutside}>Can’t see your device?</Text>
+        {/* Bluetooth Section */}
+        <Text style={styles.sectionLabelOutside}>Can{'\u2019'}t see your device?</Text>
         
         <View style={styles.bluetoothRectangle}>
-          {/* iOS Style Bluetooth Toggle */}
-          <View style={styles.iosToggleRow}>
+          
+          {/* iOS Toggle Row - Artık tıklanabilir yaptık */}
+          <TouchableOpacity 
+            style={styles.iosToggleRow} 
+            activeOpacity={0.7}
+            onPress={openBluetoothSettings} // Satıra tıklayınca ayarları açar
+          >
             <View style={styles.toggleLabelGroup}>
               <Ionicons name="bluetooth" size={20} color="#434F4D" />
-              <Text style={styles.toggleText}>Bluetooth</Text>
+              <Text style={styles.toggleText}>Bluetooth Settings</Text>
             </View>
+            
+            {/* Switch sadece görsel duruyor, üzerine basınca uyarı verecek şekilde ayarladık */}
             <Switch
-              trackColor={{ false: "#D1D1D1", true: "#30D158" }}
-              thumbColor={"#FFF"}
+              trackColor={{ false: '#D1D1D1', true: '#30D158' }}
+              thumbColor="#FFF"
               ios_backgroundColor="#D1D1D1"
-              onValueChange={setIsBluetoothEnabled}
+              onValueChange={handleToggle}
               value={isBluetoothEnabled}
+              // Switch'e direkt basılmasını engelleyip satıra basılmasını sağlayabilirsin
+              // pointerEvents="none" 
             />
-          </View>
+          </TouchableOpacity>
           
           <Text style={styles.discoverableHint}>
-            This iPhone is discoverable as “Buse’s iPhone” while Bluetooth Settings is open.
+            Tap above to open System Bluetooth Settings to pair new devices.
           </Text>
 
-          {/* Device List Section */}
+          {/* Device List (Görsel Mock Data) */}
           <View style={styles.deviceListContainer}>
-            <Text style={styles.listHeader}>MY DEVICES</Text>
+            <Text style={styles.listHeader}>PAIRED DEVICES (EXAMPLE)</Text>
             
             <TouchableOpacity style={styles.deviceRow}>
-              <Text style={styles.deviceNameText}>Smart HR Watch</Text>
+              <Text style={styles.deviceNameText} numberOfLines={1}>Smart HR Watch</Text>
               <View style={styles.deviceActionGroup}>
-                <Text style={styles.notConnectedLabel}>Not connected</Text>
+                <Text style={styles.notConnectedLabel} numberOfLines={1}>Not connected</Text>
                 <Ionicons name="information-circle-outline" size={22} color="#0A84FF" />
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.deviceRow}>
-              <Text style={styles.deviceNameText}>Px8 Headphones</Text>
+              <Text style={styles.deviceNameText} numberOfLines={1}>Px8 Headphones</Text>
               <View style={styles.deviceActionGroup}>
-                <Text style={styles.notConnectedLabel}>Not connected</Text>
+                <Text style={styles.notConnectedLabel} numberOfLines={1}>Not connected</Text>
                 <Ionicons name="information-circle-outline" size={22} color="#0A84FF" />
               </View>
             </TouchableOpacity>
 
-            <View style={styles.otherDevicesRow}>
-              <Text style={styles.listHeader}>OTHER DEVICES</Text>
-              <Ionicons name="sync" size={16} color="rgba(67, 79, 77, 0.4)" />
-            </View>
+            {/* Bu butonu da ayarlara yönlendirebiliriz */}
+            <TouchableOpacity style={styles.otherDevicesRow} onPress={openBluetoothSettings}>
+              <Text style={styles.listHeader}>GO TO SETTINGS FOR OTHERS</Text>
+              <Ionicons name="chevron-forward" size={16} color="rgba(67, 79, 77, 0.4)" />
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -105,41 +147,37 @@ const Sensors: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 19, paddingBottom: 40, paddingTop: 10 },
-  
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginTop: 50, 
-    marginBottom: 25 
-  },
-  headerTitle: { 
-    fontSize: 22, 
-    color: '#434F4D', 
-    fontWeight: '400',
-    textShadowColor: 'rgba(0, 0, 0, 0.25)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 11
-  },
-  profileButton: { backgroundColor: '#FFF', borderRadius: 20 },
 
   statusRectangle: { 
     backgroundColor: '#FAFAFA', 
     borderRadius: 28, 
-    padding: 24, 
-    height: 90, 
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    minHeight: 79,
     justifyContent: 'center', 
     marginBottom: 30,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
-    shadowRadius: 10
+    shadowRadius: 10,
+    elevation: 2,
   },
-  statusText: { fontSize: 17, color: '#434F4D', fontWeight: '500', lineHeight: 22 },
+  statusText: { 
+    fontSize: 17, 
+    color: '#434F4D', 
+    fontWeight: '500', 
+    lineHeight: 22,
+    flexShrink: 1,
+  },
 
   sectionContainer: { alignItems: 'center', marginBottom: 35 },
-  sectionLabel: { fontSize: 17, fontWeight: '600', color: '#434F4D', alignSelf: 'center', marginBottom: 20 },
-  
+  sectionLabel: { 
+    fontSize: 17, 
+    fontWeight: '600', 
+    color: '#434F4D', 
+    alignSelf: 'center', 
+    marginBottom: 20,
+  },
   largeWatchCard: { 
     width: width * 0.6, 
     height: 260, 
@@ -152,26 +190,29 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
-    shadowRadius: 15
+    shadowRadius: 15,
   },
   watchImageWrapper: { flex: 1, justifyContent: 'center' },
   largeWatchImage: { width: 150, height: 190 },
   watchLabel: { fontSize: 17, fontWeight: '600', color: '#434F4D', marginTop: 10 },
 
-  // Kutu dışındaki başlık
   sectionLabelOutside: { 
     fontSize: 17, 
     fontWeight: '600', 
     color: '#434F4D', 
     marginBottom: 12, 
-    marginLeft: 4 
+    marginLeft: 4,
   },
-
   bluetoothRectangle: { 
     backgroundColor: '#FAFAFA', 
     borderRadius: 15, 
     padding: 16, 
-    marginBottom: 20 
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
   },
   iosToggleRow: { 
     flexDirection: 'row', 
@@ -180,7 +221,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#D9D9D9', 
     borderRadius: 10, 
     padding: 12,
-    marginBottom: 8
+    marginBottom: 8,
   },
   toggleLabelGroup: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   toggleText: { fontSize: 16, color: '#434F4D' },
@@ -189,23 +230,37 @@ const styles = StyleSheet.create({
     color: 'rgba(67, 79, 77, 0.57)', 
     lineHeight: 18, 
     marginBottom: 25,
-    paddingHorizontal: 4
+    paddingHorizontal: 4,
   },
-
   deviceListContainer: { marginTop: 10 },
-  listHeader: { fontSize: 12, fontWeight: '600', color: 'rgba(67, 79, 77, 0.57)', marginBottom: 12 },
+  listHeader: { 
+    fontSize: 12, 
+    fontWeight: '600', 
+    color: 'rgba(67, 79, 77, 0.57)', 
+    marginBottom: 12,
+  },
   deviceRow: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
     paddingVertical: 14, 
-    borderBottomWidth: 0.5, 
-    borderBottomColor: 'rgba(84, 84, 88, 0.2)' 
+    borderBottomWidth: StyleSheet.hairlineWidth, 
+    borderBottomColor: 'rgba(84, 84, 88, 0.2)',
   },
-  deviceNameText: { fontSize: 16, color: '#434F4D' },
+  deviceNameText: { 
+    fontSize: 16, 
+    color: '#434F4D',
+    flexShrink: 1,
+    marginRight: 8,
+  },
   deviceActionGroup: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   notConnectedLabel: { fontSize: 14, color: 'rgba(67, 79, 77, 0.4)' },
-  otherDevicesRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 20 }
+  otherDevicesRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 8, 
+    marginTop: 20,
+  },
 });
 
 export default Sensors;
