@@ -2,31 +2,41 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
-  View
+  View,
+  ActivityIndicator,
 } from 'react-native';
+import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { API } from '../../api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   const handleLogin = async () => {
     setError(null);
 
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password.');
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      console.log(API.login());
       const response = await fetch(API.login(), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
@@ -39,116 +49,156 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('accessToken', accessToken);
 
       router.replace('/dashboard');
-
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Log In</Text>
+    <ScreenBackground style={styles.outerContainer}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <View style={styles.centered}>
+          {/* Figma glassmorphism card: radial-gradient(#E6E6E6 → rgba(255,255,255,0.68)), borderRadius: 42 */}
+          <View style={styles.card}>
+            <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+              <Defs>
+                <RadialGradient
+                  id="loginGrad"
+                  cx="51%"
+                  cy="-14%"
+                  rx="115%"
+                  ry="115%"
+                >
+                  <Stop offset="0" stopColor="#E6E6E6" stopOpacity="1" />
+                  <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.68" />
+                </RadialGradient>
+              </Defs>
+              <Rect x="0" y="0" width="100%" height="100%" rx="42" fill="url(#loginGrad)" />
+            </Svg>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            placeholder="name@example.com"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            style={styles.input}
-          />
+            <View style={styles.cardContent}>
+              <Text style={styles.title}>Log In</Text>
+
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Username"
+                placeholderTextColor="#A0A0A0"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                style={styles.input}
+              />
+
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password"
+                placeholderTextColor="#A0A0A0"
+                secureTextEntry
+                style={styles.input}
+              />
+
+              {error && <Text style={styles.error}>{error}</Text>}
+            </View>
+          </View>
+
+          {/* Sign In button */}
+          <Pressable
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Sign In</Text>
+            )}
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/register')} style={styles.linkWrap}>
+            <Text style={styles.linkText}>
+              Don{'\u2019'}t have an account? <Text style={styles.linkBold}>Sign Up</Text>
+            </Text>
+          </Pressable>
         </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            secureTextEntry
-            style={styles.input}
-          />
-        </View>
-
-        <Pressable style={styles.primaryButton} onPress={handleLogin}>
-          <Text style={styles.primaryButtonText}>Log In</Text>
-        </Pressable>
-
-        {error && <Text style={styles.error}>{error}</Text>}
-
-        {/*<Pressable onPress={() => router.push('/register')}>
-          <Text style={styles.link}>Don't have an account? Create one</Text>
-        </Pressable>
-        */}
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outerContainer: { flex: 1 },
+  keyboardView: { flex: 1 },
+  centered: {
     flex: 1,
     justifyContent: 'center',
-    padding: 24,
-    backgroundColor: '#fff',
+    alignItems: 'center',
+    paddingHorizontal: 28,
   },
 
   card: {
-    backgroundColor: '#f9fafb',
-    padding: 24,
-    borderRadius: 16,
+    width: '100%',
+    maxWidth: 336,
+    borderRadius: 42,
+    overflow: 'hidden',
+    shadowColor: '#3D4E4A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 6,
   },
-
+  cardContent: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 28,
+  },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '600',
+    color: '#434F4D',
+    textAlign: 'center',
     marginBottom: 20,
-    textAlign: 'center',
   },
-
-  inputGroup: {
-    marginBottom: 14,
-  },
-
-  label: {
-    fontSize: 14,
-    marginBottom: 6,
-    color: '#333',
-  },
-
   input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
+    fontSize: 17,
+    color: '#434F4D',
+    marginBottom: 12,
   },
-
-  primaryButton: {
-    backgroundColor: '#4f46e5',
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-
-  primaryButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-
   error: {
-    color: 'red',
-    marginTop: 10,
+    color: '#E55A5A',
+    fontSize: 13,
+    fontWeight: '500',
     textAlign: 'center',
+    marginTop: 4,
   },
 
-  link: {
-    marginTop: 14,
-    color: '#4f46e5',
-    textAlign: 'center',
+  button: {
+    width: '100%',
+    maxWidth: 248,
+    backgroundColor: '#5CB89A',
+    borderRadius: 18,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 24,
+    shadowColor: '#5CB89A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
+  buttonDisabled: { opacity: 0.6 },
+  buttonText: { color: '#FFF', fontWeight: '600', fontSize: 17 },
+
+  linkWrap: { marginTop: 16 },
+  linkText: { fontSize: 14, color: 'rgba(67,79,77,0.6)' },
+  linkBold: { fontWeight: '600', color: '#5CB89A' },
 });
