@@ -1,17 +1,19 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  ActivityIndicator,
 } from 'react-native';
-
+import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
+import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { API } from '../../api';
 
 export default function RegisterScreen() {
@@ -24,18 +26,18 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     setError(null);
+
+    if (!email.trim() || !password.trim()) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      if (!email || !password) {
-        throw new Error("Invalid credentials");
-      }
-
-      const response = await fetch(`${API.register()}`, {
+      const response = await fetch(API.register(), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
@@ -44,173 +46,164 @@ export default function RegisterScreen() {
         throw new Error(msg || 'Registration failed');
       }
 
-      Alert.alert("Success", "Account created successfully!", [
-        { 
-          text: "Login", 
-          onPress: () => router.back()
-        } 
+      Alert.alert('Success', 'Account created successfully!', [
+        { text: 'Log In', onPress: () => router.back() },
       ]);
-
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Something went wrong.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* KeyboardAvoidingView prevents the keyboard from covering inputs */}
-      <KeyboardAvoidingView 
+    <ScreenBackground style={styles.outerContainer}>
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, justifyContent: 'center' }}
+        style={styles.keyboardView}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Glassmorphism card — same style as login */}
           <View style={styles.card}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Create Account</Text>
-              <Text style={styles.subtitle}>Start tracking your HRV today</Text>
-            </View>
+            <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+              <Defs>
+                <RadialGradient
+                  id="regGrad"
+                  cx="51%"
+                  cy="-14%"
+                  rx="115%"
+                  ry="115%"
+                >
+                  <Stop offset="0" stopColor="#E6E6E6" stopOpacity="1" />
+                  <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.68" />
+                </RadialGradient>
+              </Defs>
+              <Rect x="0" y="0" width="100%" height="100%" rx="42" fill="url(#regGrad)" />
+            </Svg>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
+            <View style={styles.cardContent}>
+              <Text style={styles.title}>Create Account </Text>
+
               <TextInput
                 value={email}
                 onChangeText={setEmail}
-                placeholder="name@example.com"
+                placeholder="Username"
+                placeholderTextColor="#A0A0A0"
                 autoCapitalize="none"
                 keyboardType="email-address"
                 style={styles.input}
-                placeholderTextColor="#9CA3AF"
               />
-            </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password</Text>
               <TextInput
                 value={password}
                 onChangeText={setPassword}
-                placeholder="••••••••"
+                placeholder="Password"
+                placeholderTextColor="#A0A0A0"
                 secureTextEntry
                 style={styles.input}
-                placeholderTextColor="#9CA3AF"
               />
+
+              {error && <Text style={styles.error}>{error}</Text>}
             </View>
-
-            <Pressable 
-              style={[styles.primaryButton, loading && styles.buttonDisabled]} 
-              onPress={handleRegister}
-              disabled={loading}
-            >
-              <Text style={styles.primaryButtonText}>
-                {loading ? "Creating Account..." : "Sign Up"}
-              </Text>
-            </Pressable>
-
-            {error && <Text style={styles.error}>{error}</Text>}
-
-            <Pressable onPress={() => router.back()} style={styles.secondaryButton}>
-              <Text style={styles.secondaryButtonText}>Back to Login</Text>
-            </Pressable>
           </View>
 
+          {/* Sign Up button */}
+          <Pressable
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Sign Up</Text>
+            )}
+          </Pressable>
+
+          <Pressable onPress={() => router.back()} style={styles.linkWrap}>
+            <Text style={styles.linkText}>
+              Already have an account? <Text style={styles.linkBold}>Sign In</Text>
+            </Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  outerContainer: { flex: 1 },
+  keyboardView: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
-  },
-  card: {
-    backgroundColor: '#f9fafb',
-    padding: 24,
-    borderRadius: 16,
-    // iOS Shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    // Android Shadow
-    elevation: 2,
-  },
-  header: {
-    marginBottom: 24,
     alignItems: 'center',
+    paddingHorizontal: 28,
+    paddingVertical: 40,
+  },
+
+  card: {
+    width: '100%',
+    maxWidth: 336,
+    borderRadius: 42,
+    overflow: 'hidden',
+    shadowColor: '#3D4E4A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 6,
+  },
+  cardContent: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 28,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#434F4D',
     textAlign: 'center',
-  },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 6,
-    color: '#374151',
+    marginBottom: 20,
   },
   input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-    color: '#111827',
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
+    fontSize: 17,
+    color: '#434F4D',
+    marginBottom: 12,
   },
-  primaryButton: {
-    backgroundColor: '#007AFF', // Matches your Login screen blue
+  error: {
+    color: '#E55A5A',
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+
+  button: {
+    width: '100%',
+    maxWidth: 248,
+    backgroundColor: '#5CB89A',
+    borderRadius: 18,
     paddingVertical: 14,
-    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 10,
-    shadowColor: '#007AFF',
+    marginTop: 24,
+    shadowColor: '#5CB89A',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 4,
   },
-  buttonDisabled: {
-    backgroundColor: '#93C5FD',
-    elevation: 0,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  secondaryButton: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#6B7280',
-    fontWeight: '500',
-    fontSize: 14,
-  },
-  error: {
-    color: '#EF4444',
-    marginTop: 12,
-    textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  buttonDisabled: { opacity: 0.6 },
+  buttonText: { color: '#FFF', fontWeight: '600', fontSize: 17 },
+
+  linkWrap: { marginTop: 16 },
+  linkText: { fontSize: 14, color: 'rgba(67,79,77,0.6)' },
+  linkBold: { fontWeight: '600', color: '#5CB89A' },
 });
