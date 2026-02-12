@@ -6,16 +6,18 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/themed-text';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 const { width } = Dimensions.get('window');
 const WEIGHT_REGULAR = '400';
 const WEIGHT_SEMIBOLD = '600';
 
-// --- DATA ---
+//DATA
 const CHART_DATA = [
   { day: 'Mon', val: 64, active: false },
   { day: 'Tue', val: 90, active: false },
@@ -26,19 +28,19 @@ const CHART_DATA = [
   { day: 'Today', val: 113, active: true },
 ];
 
-// --- ICONS ---
+//ICONS
 
 function PulseIcon() {
   return (
     <Svg width={24} height={18} viewBox="0 0 24 18" fill="none">
-      <Path d="M1 9H5L8 2L12 16L16 6L18 9H23" stroke="#434F4D" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M1 9H5L8 2L12 16L16 6L18 9H23" stroke="#434F4D" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
 function HeroArrow() {
   return (
-    <Svg width={180} height={120} viewBox="0 0 160 100" fill="none">
+    <Svg width={150} height={100} viewBox="0 0 160 100" fill="none">
       <Path
         d="M100.072 7.5H141.214V48.6429"
         stroke="#A7F59E"
@@ -92,14 +94,14 @@ function LotusIcon() {
   );
 }
 
-// --- SECTIONS ---
+//SECTIONS
 
 function HeroCard() {
   return (
     <View style={styles.heroCard}>
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="none">
         <Defs>
-          <RadialGradient id="heroGrad" cx="19%" cy="50%" rx="110%" ry="110%" gradientUnits="userSpaceOnUse">
+          <RadialGradient id="heroGrad" cx="19%" cy="50%" rx="104%" ry="104%" gradientUnits="objectBoundingBox">
             <Stop offset="0" stopColor="#12B600" />
             <Stop offset="1" stopColor="#BEFFB7" />
           </RadialGradient>
@@ -222,32 +224,35 @@ function QuickActions() {
   );
 }
 
-// --- MAIN SCREEN ---
+//MAIN SCREEN 
 
 export default function InsightsScreen() {
   return (
     <ScreenBackground style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <HeroCard />
-        <HRVSection />
-        <QuickActions />
-      </ScrollView>
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+           <PageHeader title="Insights" variant="default" />
+          <HeroCard />
+          <HRVSection />
+          <QuickActions />
+        </ScrollView>
+      </SafeAreaView>
     </ScreenBackground>
   );
 }
 
-// --- STYLES ---
+//STYLES
 
 const CHART_HEIGHT = 130;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 18, paddingBottom: 40 },
+  scrollContent: { paddingHorizontal: 18,paddingTop:10, paddingBottom: 40 },
 
   // Hero Card
   heroCard: {
     borderRadius: 20, height: 101, flexDirection: 'row', alignItems: 'center',
-    marginBottom: 16, marginTop: 11,overflow: 'hidden', elevation: 8,
+    marginBottom: 16, marginTop: 0,overflow: 'hidden', elevation: 8,
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8,
   },
   heroContent: { flex: 1, zIndex: 1, paddingLeft: 16 },
@@ -255,8 +260,8 @@ const styles = StyleSheet.create({
   heroSubtitle: { fontSize: 16, color: 'rgba(209,239,236,0.75)', fontWeight: WEIGHT_REGULAR as any, lineHeight: 18 },
   heroArrowWrap: { 
     position: 'absolute', 
-    right: -10, 
-    top: 5, //okun tepesi düzelt
+    right: 5, 
+    top: 10,
     opacity: 0.4,
     zIndex: 0 
   },
@@ -269,7 +274,7 @@ const styles = StyleSheet.create({
   },
   hrvTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   hrvTitle: { fontSize: 16, fontWeight: WEIGHT_SEMIBOLD as any, color: '#434F4D' },
-  hrvDesc: { fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any, color: 'rgba(67,79,77,0.80)', marginBottom: 12, lineHeight: 18 },
+  hrvDesc: { fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any, color: 'rgba(67,79,77,0.80)', marginBottom: 12, lineHeight: 20 },
   
   chartWrapper: { position: 'relative', marginTop: 8 },
   last7DaysLabel: { fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any, color: '#83CEC7', marginBottom: 12 },
@@ -289,22 +294,24 @@ const styles = StyleSheet.create({
   },
   barWrapper: { alignItems: 'center', flex: 1 },
   barContainer: { justifyContent: 'flex-end', alignItems: 'center' },
-  bar: { width: 24, borderRadius: 12 },
+  bar: { width: 24, borderRadius: 10 },
   valueBubble: { 
     backgroundColor: '#90E2DA', 
-    borderRadius: 8, 
-    paddingHorizontal: 6, 
-    paddingVertical: 2, 
+    borderRadius: 10, 
+    paddingHorizontal: 8, 
+    paddingVertical: 3, 
     marginBottom: 4,
-    zIndex: 2 
+    zIndex: 2,
+    minWidth: 28,
+    alignItems: 'center',
   },
-  valueText: { fontSize: 10, color: '#FFF', fontWeight: WEIGHT_SEMIBOLD as any },
+  valueText: { fontSize: 12, color: '#FFF', fontWeight: WEIGHT_SEMIBOLD as any },
   dayLabel: { marginTop: 8, fontSize: 12, color: '#D9D9D9', fontWeight: WEIGHT_SEMIBOLD as any },
   activeDayLabel: { color: '#90E1DA' },
 
   // Baseline
   baselineContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-  baselineLine: { flex: 1, height: 2, backgroundColor: '#E3C937', opacity: 0.3 },
+  baselineLine: { flex: 1, height: 3, backgroundColor: '#E3C937', opacity: 0.35, borderRadius: 1.5 },
   baselineBadge: { marginLeft: 10, backgroundColor: 'rgba(227,201,55,0.13)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
   baselineText: { color: '#E3C937', fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any },
 
@@ -319,7 +326,7 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: '#F8F8F8', borderRadius: 20, 
     paddingTop: 12, paddingBottom: 12, alignItems: 'center' 
   },
-  actionLabel: { fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any, color: 'rgba(67,79,77,0.70)', marginBottom: 8 },
+  actionLabel: { fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any, color: 'rgba(67,79,77,0.80)', marginBottom: 8 },
   iconCircle: { 
     width: 47, height: 47, borderRadius: 19, 
     justifyContent: 'center', alignItems: 'center', marginBottom: 10,
@@ -329,5 +336,5 @@ const styles = StyleSheet.create({
     width: 51, height: 21, backgroundColor: '#E7E7E7', 
     borderRadius: 9, justifyContent: 'center', alignItems: 'center' 
   },
-  logButtonText: { fontSize: 10, fontWeight: WEIGHT_SEMIBOLD as any, color: '#A0A0A0' },
+  logButtonText: { fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any, color: '#FFFFFF' },
 });
