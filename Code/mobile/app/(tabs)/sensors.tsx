@@ -8,37 +8,38 @@ import {
   Switch,
   ScrollView,
   Dimensions,
-  Linking, // <-- 1. Linking eklendi
+  Linking, //For bluetooth linking
   Platform,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 const { width } = Dimensions.get('window');
 
 const Sensors: React.FC = () => {
-  // iOS'ta Bluetooth'u programatik olarak açıp kapatamazsın, 
-  // bu yüzden state sadece görsel amaçlıdır.
+  // iOS'ta Bluetooth'u programatik olarak açıp kapama yok
+  
   const [isBluetoothEnabled, setIsBluetoothEnabled] = useState(true);
 
-  // --- AYARLARI AÇMA FONKSİYONU ---
+  // Bluetooth navigate to settings
   const openBluetoothSettings = () => {
     if (Platform.OS === 'ios') {
-      // iOS'ta direkt Bluetooth ayarlarına gitmek bazen kısıtlanabilir,
-      // bu komut genellikle ana ayarlara atar.
+      
       Linking.openURL('App-Prefs:root=Bluetooth').catch(() => {
         Linking.openSettings(); // Hata verirse uygulamanın ayarlarına git
       });
     } else {
-      // Android için direkt Bluetooth ayarları
+      // Android için  Bluetooth settings
       Linking.sendIntent('android.settings.BLUETOOTH_SETTINGS');
     }
   };
 
   const handleToggle = (value: boolean) => {
     setIsBluetoothEnabled(value);
-    // Kullanıcı kapatmaya çalıştığında uyarı verip ayarlara yönlendirebiliriz
+    // If user tries to disable navigate to settings
     if (!value) {
         Alert.alert(
             "Bluetooth Settings",
@@ -53,10 +54,12 @@ const Sensors: React.FC = () => {
 
   return (
     <ScreenBackground style={styles.container}>
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
       <ScrollView 
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={styles.scrollContent}
       >
+        <PageHeader title="Sensors" variant="default" />
         {/* Status Message */}
         <View style={styles.statusRectangle}>
           <Text style={styles.statusText} numberOfLines={2} adjustsFontSizeToFit={false}>
@@ -85,26 +88,24 @@ const Sensors: React.FC = () => {
         
         <View style={styles.bluetoothRectangle}>
           
-          {/* iOS Toggle Row - Artık tıklanabilir yaptık */}
+          {/* iOS Toggle Row */}
           <TouchableOpacity 
             style={styles.iosToggleRow} 
             activeOpacity={0.7}
-            onPress={openBluetoothSettings} // Satıra tıklayınca ayarları açar
+            onPress={openBluetoothSettings} // When click open settings
           >
             <View style={styles.toggleLabelGroup}>
               <Ionicons name="bluetooth" size={20} color="#434F4D" />
               <Text style={styles.toggleText}>Bluetooth Settings</Text>
             </View>
             
-            {/* Switch sadece görsel duruyor, üzerine basınca uyarı verecek şekilde ayarladık */}
+          
             <Switch
               trackColor={{ false: '#D1D1D1', true: '#30D158' }}
               thumbColor="#FFF"
               ios_backgroundColor="#D1D1D1"
               onValueChange={handleToggle}
               value={isBluetoothEnabled}
-              // Switch'e direkt basılmasını engelleyip satıra basılmasını sağlayabilirsin
-              // pointerEvents="none" 
             />
           </TouchableOpacity>
           
@@ -112,7 +113,7 @@ const Sensors: React.FC = () => {
             Tap above to open System Bluetooth Settings to pair new devices.
           </Text>
 
-          {/* Device List (Görsel Mock Data) */}
+          {/* Device List */}
           <View style={styles.deviceListContainer}>
             <Text style={styles.listHeader}>PAIRED DEVICES (EXAMPLE)</Text>
             
@@ -132,7 +133,6 @@ const Sensors: React.FC = () => {
               </View>
             </TouchableOpacity>
 
-            {/* Bu butonu da ayarlara yönlendirebiliriz */}
             <TouchableOpacity style={styles.otherDevicesRow} onPress={openBluetoothSettings}>
               <Text style={styles.listHeader}>GO TO SETTINGS FOR OTHERS</Text>
               <Ionicons name="chevron-forward" size={16} color="rgba(67, 79, 77, 0.4)" />
@@ -140,13 +140,14 @@ const Sensors: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+      </SafeAreaView>
     </ScreenBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 19, paddingBottom: 40, paddingTop: 10 },
+  scrollContent: { paddingHorizontal: 19,paddingTop:10, paddingBottom: 40 },
 
   statusRectangle: { 
     backgroundColor: '#FAFAFA', 
