@@ -63,7 +63,6 @@ export default function LoginScreen() {
         style={styles.keyboardView}
       >
         <View style={styles.centered}>
-          {/* Figma glassmorphism card: radial-gradient(#E6E6E6 → rgba(255,255,255,0.68)), borderRadius: 42 */}
           <View style={styles.card}>
             <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
               <Defs>
