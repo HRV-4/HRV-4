@@ -5,73 +5,96 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { PageHeader } from '@/components/ui/PageHeader';
-import Svg, { Circle, Rect, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Rect, Polyline, Line, Text as SvgText } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 
 // --- RESPONSIVE SCALING ---
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const FIGMA_WIDTH = 402;
 const scale = (size: number) => (SCREEN_WIDTH / FIGMA_WIDTH) * size;
 
-// --- TIME RANGE CARD (Unchanged) ---
-const RANGES = [
-  { key: "12h", label: "12h" },
-  { key: "24h", label: "24h" },
-  { key: "1w", label: "1w" },
-  { key: "1m", label: "1m" },
-  { key: "1y", label: "1y" },
+// --- STABLE MOCK DATA (30 DAYS) ---
+const DATA_SETS = {
+  bioAge: [31, 31, 30, 30, 29, 29, 30, 30, 31, 30, 29, 29, 28, 29, 30, 30, 31, 30, 30, 29, 30, 30, 29, 29, 30, 30, 30, 29, 30, 30],
+  sleep: [72, 75, 80, 65, 85, 90, 88, 82, 78, 85, 89, 92, 70, 75, 80, 85, 88, 90, 85, 82, 89, 88, 90, 92, 85, 80, 88, 89, 89, 89],
+  health: [6.8, 6.9, 7.0, 7.0, 7.1, 7.1, 7.2, 7.0, 6.9, 7.0, 7.1, 7.2, 7.3, 7.2, 7.1, 7.0, 7.1, 7.2, 7.2, 7.1, 7.2, 7.3, 7.2, 7.1, 7.2, 7.2, 7.1, 7.2, 7.2, 7.2],
+  stress: [5.5, 5.8, 6.0, 6.2, 6.1, 5.9, 6.0, 6.3, 6.5, 6.2, 6.0, 5.8, 6.0, 6.1, 6.2, 6.3, 6.1, 6.0, 6.2, 6.3, 6.4, 6.3, 6.2, 6.1, 6.2, 6.3, 6.2, 6.3, 6.3, 6.3],
+  perf: [8.0, 8.1, 8.2, 8.0, 8.3, 8.4, 8.5, 8.3, 8.2, 8.4, 8.5, 8.6, 8.4, 8.3, 8.5, 8.5, 8.4, 8.5, 8.6, 8.5, 8.4, 8.5, 8.6, 8.5, 8.4, 8.5, 8.6, 8.5, 8.5, 8.5],
+  burnout: [4.2, 4.1, 4.0, 3.9, 3.8, 3.9, 3.8, 3.7, 3.6, 3.7, 3.8, 3.7, 3.6, 3.5, 3.6, 3.7, 3.8, 3.7, 3.6, 3.7, 3.8, 3.7, 3.6, 3.7, 3.8, 3.7, 3.6, 3.7, 3.7, 3.7]
+};
+
+const METRICS_DB = [
+  { id: 1, title: "Biological Age", value: "30", percentage: 65, type: 'pie', history: DATA_SETS.bioAge, unit: 'yrs' },
+  { id: 2, title: "Sleep Quality", value: "%89", percentage: 22, type: 'heatmap', buttonText: "Get tips to increase\nyour sleep quality!", history: DATA_SETS.sleep, unit: '%' },
+  { id: 3, title: "General Health", value: "7.2", percentage: 37, type: 'pie', history: DATA_SETS.health, unit: '/10' },
+  { id: 4, title: "Stress", value: "6.3", percentage: 52, type: 'pie', history: DATA_SETS.stress, unit: '/10' },
+  { id: 5, title: "Performance", value: "8.5", percentage: 43, type: 'pie', history: DATA_SETS.perf, unit: '/10' },
+  { id: 6, title: "Burnout Res.", value: "3.7", percentage: 11, type: 'pie', history: DATA_SETS.burnout, unit: '/10' },
 ];
 
-function TimeRangeCard({ activeRange, onRangeChange }: { activeRange: string, onRangeChange: (r: string) => void }) {
+// --- TIME RANGE CARD ---
+const RANGES = [ { key: "12h", label: "12h" }, { key: "24h", label: "24h" }, { key: "1w", label: "1w" }, { key: "1m", label: "1m" }, { key: "1y", label: "1y" }];
+function TimeRangeCard({ activeRange, onRangeChange }: any) {
   return (
-      <LinearGradient
-          colors={['#94D4CE', '#DBFFFD']}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={styles.greetingCard}
-      >
+      <LinearGradient colors={['#94D4CE', '#DBFFFD']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.greetingCard}>
         <View style={styles.greetingContent}>
           <View style={styles.greetingTextContainer}>
-            <Text
-                style={styles.greetingText}
-                numberOfLines={2}
-                adjustsFontSizeToFit={true}
-                minimumFontScale={0.7}
-            >
-              Hope you are{'\n'}good today.
-            </Text>
+            <Text style={styles.greetingText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7}>Hope you are{'\n'}good today.</Text>
           </View>
           <View style={styles.rangeContainer}>
-            {RANGES.map((r) => {
-              const isActive = activeRange === r.key;
-              return (
-                  <TouchableOpacity
-                      key={r.key}
-                      style={[styles.rangeBtn, isActive && styles.rangeBtnActive]}
-                      onPress={() => onRangeChange(r.key)}
-                      activeOpacity={0.8}
-                  >
-                    <Text
-                        style={[styles.rangeText, isActive && styles.rangeTextActive]}
-                        adjustsFontSizeToFit
-                        numberOfLines={1}
-                    >
-                      {r.label}
-                    </Text>
-                  </TouchableOpacity>
-              );
-            })}
+            {RANGES.map((r) => (
+                <TouchableOpacity key={r.key} style={[styles.rangeBtn, activeRange === r.key && styles.rangeBtnActive]} onPress={() => onRangeChange(r.key)}>
+                  <Text style={[styles.rangeText, activeRange === r.key && styles.rangeTextActive]}>{r.label}</Text>
+                </TouchableOpacity>
+            ))}
           </View>
         </View>
       </LinearGradient>
   );
 }
 
-// --- METRIC PIE CHART COMPONENT (Unchanged) ---
-interface PieChartProps {
-  percentage: number;
+// --- DROPDOWN HEADER COMPONENT ---
+const GRAPH_TYPES = [
+  { id: 'overview', label: 'Performance Metrics' },
+  { id: 'distribution', label: 'Distribution Analysis' },
+  { id: 'trend', label: 'Trend Analysis' },
+];
+
+function GraphTypeSelector({ currentType, onSelect }: { currentType: string, onSelect: (t: string) => void }) {
+  const [visible, setVisible] = useState(false);
+  const currentLabel = GRAPH_TYPES.find(t => t.id === currentType)?.label;
+
+  return (
+      <View style={{ zIndex: 100 }}>
+        <TouchableOpacity
+            style={styles.dropdownHeader}
+            onPress={() => setVisible(!visible)}
+            activeOpacity={0.7}
+        >
+          <Text style={styles.sectionTitle}>{currentLabel}</Text>
+          <Ionicons name={visible ? "chevron-up" : "chevron-down"} size={scale(20)} color="#434F4D" style={{ marginBottom: scale(22) }} />
+        </TouchableOpacity>
+
+        {visible && (
+            <View style={styles.dropdownMenu}>
+              {GRAPH_TYPES.map((type) => (
+                  <TouchableOpacity
+                      key={type.id}
+                      style={styles.dropdownItem}
+                      onPress={() => { onSelect(type.id); setVisible(false); }}
+                  >
+                    <Text style={[styles.dropdownItemText, currentType === type.id && styles.dropdownItemTextActive]}>{type.label}</Text>
+                    {currentType === type.id && <View style={styles.activeDot} />}
+                  </TouchableOpacity>
+              ))}
+            </View>
+        )}
+      </View>
+  );
 }
 
-function MetricPieChart({ percentage }: PieChartProps) {
+// --- CHART 1: PIE & HEATMAP ---
+function MetricPieChart({ percentage }: { percentage: number }) {
   const size = scale(146);
   const strokeWidth = scale(10);
   const radius = (size - strokeWidth) / 2;
@@ -81,26 +104,8 @@ function MetricPieChart({ percentage }: PieChartProps) {
   return (
       <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
         <Svg width={size} height={size}>
-          <Circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              stroke="#E1E1E1"
-              strokeWidth={strokeWidth}
-              fill="none"
-          />
-          <Circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              stroke="#434F4D"
-              strokeWidth={strokeWidth}
-              fill="none"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="butt"
-              transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          />
+          <Circle cx={size / 2} cy={size / 2} r={radius} stroke="#E1E1E1" strokeWidth={strokeWidth} fill="none" />
+          <Circle cx={size / 2} cy={size / 2} r={radius} stroke="#434F4D" strokeWidth={strokeWidth} fill="none" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="butt" transform={`rotate(-90 ${size / 2} ${size / 2})`} />
         </Svg>
         <View style={{ position: 'absolute' }}>
           <Text style={styles.chartPercentageText}>%{percentage}</Text>
@@ -109,60 +114,172 @@ function MetricPieChart({ percentage }: PieChartProps) {
   );
 }
 
-// --- SLEEP HEATMAP COMPONENT (Unchanged) ---
 function SleepHeatmapChart() {
   const width = scale(155);
   const height = scale(105);
-
   return (
       <View style={{ width: width, height: height, justifyContent: 'center', alignItems: 'center' }}>
         <Svg width="100%" height="100%" viewBox="0 0 188 128" preserveAspectRatio="xMidYMid meet">
-          <Rect y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="32.1331" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="64.2662" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="96.3994" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="128.533" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="160.666" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="32.1331" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="64.2662" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="96.3994" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="128.533" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="160.666" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="32.1331" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="64.2662" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#2E1DFF"/>
-          <Rect x="96.3994" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#B0AAFF"/>
-          <Rect x="128.533" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#9188FF"/>
-          <Rect x="160.666" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
-          <Rect x="32.1331" width="26.7776" height="27.8261" rx="4" fill="#B0AAFF"/>
-          <Rect x="64.2662" width="26.7776" height="27.8261" rx="4" fill="#9188FF"/>
-          <Rect x="96.3994" width="26.7776" height="27.8261" rx="4" fill="#6255FF"/>
-          <Rect x="128.533" width="26.7776" height="27.8261" rx="4" fill="#2E1DFF"/>
-          <Rect x="160.666" width="26.7776" height="27.8261" rx="4" fill="#B0AAFF"/>
+          <Rect y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="32.1331" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="64.2662" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="96.3994" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="128.533" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="160.666" y="100.174" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
+          <Rect y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="32.1331" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="64.2662" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="96.3994" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="128.533" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="160.666" y="66.7827" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
+          <Rect y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="32.1331" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="64.2662" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#2E1DFF"/><Rect x="96.3994" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#B0AAFF"/><Rect x="128.533" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#9188FF"/><Rect x="160.666" y="33.3911" width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/>
+          <Rect width="26.7776" height="27.8261" rx="4" fill="#D9D9D9"/><Rect x="32.1331" width="26.7776" height="27.8261" rx="4" fill="#B0AAFF"/><Rect x="64.2662" width="26.7776" height="27.8261" rx="4" fill="#9188FF"/><Rect x="96.3994" width="26.7776" height="27.8261" rx="4" fill="#6255FF"/><Rect x="128.533" width="26.7776" height="27.8261" rx="4" fill="#2E1DFF"/><Rect x="160.666" width="26.7776" height="27.8261" rx="4" fill="#B0AAFF"/>
         </Svg>
       </View>
   );
 }
 
-// --- METRIC CARD COMPONENT (UPDATED LOGIC) ---
-interface MetricCardProps {
-  title: string;
-  value: string | number;
-  percentage: number;
-  buttonText?: string;
-  chartType: 'pie' | 'heatmap';
+// --- CHART 2: DISTRIBUTION BAR CHART ---
+function DistributionChart({ history }: { history: number[] }) {
+  if (!history || history.length === 0) return null;
+
+  const min = Math.min(...history);
+  const max = Math.max(...history);
+  const range = max - min || 1;
+  const bucketCount = 5;
+  const bucketSize = range / bucketCount;
+  const useDecimals = bucketSize < 1;
+
+  const buckets = Array(bucketCount).fill(0).map((_, i) => {
+    const val = min + i * bucketSize;
+    return {
+      label: useDecimals ? val.toFixed(1) : Math.round(val).toString(),
+      count: 0
+    };
+  });
+
+  history.forEach(val => {
+    const index = Math.min(Math.floor((val - min) / bucketSize), bucketCount - 1);
+    buckets[index].count++;
+  });
+
+  const maxCount = Math.max(...buckets.map(b => b.count));
+  const containerHeight = scale(90);
+
+  return (
+      <View style={styles.barChartContainer}>
+        {buckets.map((bucket, index) => {
+          const barHeight = (bucket.count / maxCount) * (containerHeight * 0.7);
+          const isMax = bucket.count === maxCount;
+
+          return (
+              <View key={index} style={styles.barColumn}>
+                {isMax && <Text style={styles.barValueLabel}>{bucket.count}</Text>}
+                <View style={[styles.bar, { height: Math.max(barHeight, scale(4)), backgroundColor: isMax ? '#94D4CE' : '#E1E1E1' }]} />
+                <Text style={styles.barLabel}>{bucket.label}</Text>
+              </View>
+          );
+        })}
+      </View>
+  );
 }
 
-function MetricCard({ title, value, percentage, buttonText, chartType }: MetricCardProps) {
+// --- CHART 3: TREND LINE CHART (Updated) ---
+function TrendLineChart({ history, activeRange }: { history: number[], activeRange: string }) {
+  if (!history || history.length === 0) return null;
+
+  // 1. FILTER DATA based on active range
+  let data = [];
+  if (activeRange === '12h' || activeRange === '24h') {
+    data = history.slice(-5); // Show last 5 points for very short term
+  } else if (activeRange === '1w') {
+    data = history.slice(-7); // Last 7 days
+  } else if (activeRange === '1m') {
+    data = history; // Full 30 days
+  } else {
+    data = history; // Default to full for 1y (in real app would average)
+  }
+
+  // 2. SCALE CALCULATION
+  // Reduced height to accommodate min/max labels comfortably
+  const width = scale(145);
+  const height = scale(80);
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+
+  // Format Labels (integer or 1 decimal)
+  const maxLabel = max % 1 !== 0 ? max.toFixed(1) : max;
+  const minLabel = min % 1 !== 0 ? min.toFixed(1) : min;
+
+  const points = data.map((val, i) => {
+    const x = (i / (data.length - 1)) * width;
+    // Padding top and bottom (scale(10)) to fit within dashed lines
+    const y = height - ((val - min) / range) * (height - scale(20)) - scale(10);
+    return `${x},${y}`;
+  }).join(' ');
+
+  const startX = 0;
+  const startY = height - ((data[0] - min) / range) * (height - scale(20)) - scale(10);
+  const endX = width;
+  const endY = height - ((data[data.length-1] - min) / range) * (height - scale(20)) - scale(10);
+
+  return (
+      <View style={{ width, height, justifyContent: 'center' }}>
+        <Svg width={width} height={height} style= {{overflow:"visible"}}>
+          {/* Min Dotted Line */}
+          <Line x1="0" y1={height - scale(5)} x2={width} y2={height - scale(5)} stroke="#E1E1E1" strokeWidth="1" strokeDasharray="4 2" />
+          <SvgText x={0} y={height + scale(8)} fontSize={scale(9)} fill="#B0B0B0">{minLabel}</SvgText>
+
+          {/* Max Dotted Line */}
+          <Line x1="0" y1={scale(5)} x2={width} y2={scale(5)} stroke="#E1E1E1" strokeWidth="1" strokeDasharray="4 2" />
+          <SvgText x={0} y={0} fontSize={scale(9)} fill="#B0B0B0">{maxLabel}</SvgText>
+
+          {/* Trend Line */}
+          <Polyline
+              points={points}
+              fill="none"
+              stroke="#434F4D"
+              strokeWidth={scale(2)}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+          />
+
+          {/* Start Dot */}
+          <Circle cx={startX} cy={startY} r={scale(3)} fill="#94D4CE" />
+
+          {/* End Dot */}
+          <Circle cx={endX} cy={endY} r={scale(3)} fill="#94D4CE" />
+        </Svg>
+      </View>
+  );
+}
+
+// --- MAIN METRIC CARD COMPONENT ---
+interface MetricCardProps {
+  data: any;
+  chartView: string;
+  activeRange: string; // Passed down for trend filtering
+}
+
+function MetricCard({ data, chartView, activeRange }: MetricCardProps) {
   const router = useRouter();
 
-  // DYNAMIC DESCRIPTION GENERATION
-  // This creates the string using the passed 'percentage' value
-  const descriptionText = `Better than %${percentage} of people of the same age and gender.`;
+  const renderChart = () => {
+    switch (chartView) {
+      case 'distribution':
+        return <DistributionChart history={data.history} />;
+      case 'trend':
+        // Pass activeRange here
+        return <TrendLineChart history={data.history} activeRange={activeRange} />;
+      case 'overview':
+      default:
+        return data.type === 'heatmap' ? <SleepHeatmapChart /> : <MetricPieChart percentage={data.percentage} />;
+    }
+  };
 
-  // Helper to bold the percentage in the generated text
+  const getDescription = () => {
+    switch (chartView) {
+      case 'distribution':
+        return `Distribution of your ${data.title.toLowerCase()} over the selected time range.`;
+      case 'trend':
+        return `Trend of your ${data.title.toLowerCase()} for the selected time.`;
+      case 'overview':
+      default:
+        return `Better than %${data.percentage} of people of the same age and gender.`;
+    }
+  };
+
   const renderDescription = (text: string) => {
     const parts = text.split(/(%\d+)/g);
     return (
@@ -179,31 +296,15 @@ function MetricCard({ title, value, percentage, buttonText, chartType }: MetricC
 
   return (
       <View style={styles.metricCard}>
-        {/* Left Column: Text & Button */}
         <View style={styles.cardLeftCol}>
-          <Text style={styles.cardTitle}>
-            {title}: {value}
-          </Text>
-
-          {renderDescription(descriptionText)}
-
-          <TouchableOpacity
-              style={styles.tipButton}
-              onPress={() => router.push('/insights')}
-          >
-            <Text style={styles.tipButtonText}>
-              {buttonText || "Get tips to increase\nyour well-being!"}
-            </Text>
+          <Text style={styles.cardTitle}>{data.title}: {data.value}</Text>
+          {renderDescription(getDescription())}
+          <TouchableOpacity style={styles.tipButton} onPress={() => router.push('/insights')}>
+            <Text style={styles.tipButtonText}>{data.buttonText || "Get tips to increase\nyour well-being!"}</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Right Column: Chart */}
         <View style={styles.cardRightCol}>
-          {chartType === 'heatmap' ? (
-              <SleepHeatmapChart />
-          ) : (
-              <MetricPieChart percentage={percentage} />
-          )}
+          {renderChart()}
         </View>
       </View>
   );
@@ -211,44 +312,28 @@ function MetricCard({ title, value, percentage, buttonText, chartType }: MetricC
 
 export default function GraphsScreen() {
   const [range, setRange] = useState("24h");
-
-  // CLEAN DATA: No hardcoded descriptions, only raw values.
-  const metricsData = [
-    { id: 1, type: 'pie', title: "Biological Age", value: "30", percentage: 65 },
-    { id: 2, type: 'heatmap', title: "Sleep Quality", value: "%89", percentage: 22, buttonText: "Get tips to increase\nyour sleep quality!" },
-    { id: 3, type: 'pie', title: "General Health", value: "7.2", percentage: 37 },
-    { id: 4, type: 'pie', title: "Stress", value: "6.3", percentage: 52 },
-    { id: 5, type: 'pie', title: "Performance", value: "8.5", percentage: 43 },
-    { id: 6, type: 'pie', title: "Burnout Res.", value: "3.7", percentage: 11 },
-  ];
+  const [chartView, setChartView] = useState("overview");
 
   return (
       <ScreenBackground style={styles.container}>
         <SafeAreaView edges={['top']} style={{ flex: 1 }}>
-          <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-          >
+          <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <PageHeader title="Graphs" variant="default" />
             <TimeRangeCard activeRange={range} onRangeChange={setRange} />
 
-            <View style={{ marginTop: scale(13) }}>
-              <Text style={styles.sectionTitle}>Performance Metrics</Text>
+            <View style={{ marginTop: scale(13), zIndex: 10 }}>
+              <GraphTypeSelector currentType={chartView} onSelect={setChartView} />
               <View style={styles.cardsContainer}>
-                {metricsData.map((item) => (
+                {METRICS_DB.map((item) => (
                     <MetricCard
                         key={item.id}
-                        title={item.title}
-                        value={item.value}
-                        percentage={item.percentage}
-                        buttonText={item.buttonText}
-                        chartType={item.type as 'pie' | 'heatmap'}
+                        data={item}
+                        chartView={chartView}
+                        activeRange={range} // Passing down the range
                     />
                 ))}
               </View>
             </View>
-
           </ScrollView>
         </SafeAreaView>
       </ScreenBackground>
@@ -343,18 +428,59 @@ const styles = StyleSheet.create({
 
   // --- NEW PERFORMANCE METRICS STYLES ---
 
-  // Section Title with Shadow
+  // --- DROPDOWN STYLES ---
+  dropdownHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(8),
+  },
   sectionTitle: {
     fontSize: scale(22),
     fontWeight: '400',
     color: '#434F4D',
     marginBottom: scale(22),
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }),
-    // Added Text Shadow
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: scale(3) },
     textShadowRadius: scale(2),
   },
+  dropdownMenu: {
+    position: 'absolute',
+    top: scale(35),
+    left: 0,
+    backgroundColor: '#FDFDFD',
+    borderRadius: scale(12),
+    padding: scale(8),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    width: scale(220),
+  },
+  dropdownItem: {
+    paddingVertical: scale(12),
+    paddingHorizontal: scale(12),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#F0F0F0',
+  },
+  dropdownItemText: {
+    fontSize: scale(14),
+    color: '#434F4D',
+    fontWeight: '400',
+  },
+  dropdownItemTextActive: {
+    fontWeight: '700',
+    color: '#434F4D'
+  }, // Updated color to theme dark grey
+  activeDot: {
+    width: scale(6),
+    height: scale(6),
+    borderRadius: scale(3),
+    backgroundColor: '#94D4CE' }, // Updated color to theme teal
 
   cardsContainer: {
     gap: scale(15),
@@ -423,6 +549,37 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#D6D6D6',
     ...Platform.select({ ios: { fontDesign: 'rounded' } }),
+  },
+  // --- NEW CHART STYLES ---
+  barChartContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    width: '100%',
+    height: scale(100),
+    paddingHorizontal: scale(4),
+  },
+  barColumn: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    height: '100%',
+    width: scale(25), // Fixed width for columns to keep alignment
+  },
+  bar: {
+    width: scale(8),
+    borderRadius: scale(4),
+    marginBottom: scale(4),
+  },
+  barLabel: {
+    fontSize: scale(10),
+    color: '#8E8E93',
+    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }),
+  },
+  barValueLabel: {
+    fontSize: scale(9),
+    color: '#434F4D',
+    marginBottom: scale(2),
+    fontWeight: '600'
   }
 });
 
