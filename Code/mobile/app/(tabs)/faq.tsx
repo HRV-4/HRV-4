@@ -31,7 +31,7 @@ const FAQ_DATA: FAQItem[] = [
   {
     category: 'Using the App',
     question: 'How do I connect my sensor?',
-    answer: 'Go to the Sensors tab, ensure Bluetooth is enabled, and tap on your device under "Connect with." The app supports Apple Watch, Samsung Watch, and other Bluetooth heart rate monitors.',
+    answer: 'Go to the Sensors tab, ensure Bluetooth is enabled, and tap on your device under "Connect with." Currently The app only supports Polar Loop .',
   },
   {
     category: 'Using the App',
