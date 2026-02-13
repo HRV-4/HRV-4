@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, View, TouchableOpacity, Platform } from 'react-native';
+import { StyleSheet, ScrollView, View, TouchableOpacity, Platform, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/themed-text';
@@ -31,7 +31,7 @@ const FAQ_DATA: FAQItem[] = [
   {
     category: 'Using the App',
     question: 'How do I connect my sensor?',
-    answer: 'Go to the Sensors tab, ensure Bluetooth is enabled, and tap on your device under "Connect with." Currently The app only supports Polar Loop .',
+    answer: 'Go to the Sensors tab, ensure Bluetooth is enabled, and tap "Scan" to search for nearby BLE devices. The app supports standard BLE heart rate monitors including Polar chest straps and compatible finger pulse sensors.',
   },
   {
     category: 'Using the App',
@@ -69,6 +69,35 @@ const FAQ_DATA: FAQItem[] = [
     answer: 'Yes. All your health data is encrypted in transit and at rest. We never share your personal health information with third parties. You can request data deletion at any time from Settings.',
   },
 ];
+
+// ─── SUPPORT EMAIL ───
+const SUPPORT_EMAIL = 'hrv4hrv4@gmail.com';
+
+function openSupportEmail() {
+  const subject = encodeURIComponent('HRV4 Support Request');
+  const body = encodeURIComponent(
+    `Hello HRV4 Support Team,\n\nI need help with:\n\n[Please describe your issue here]\n\n---\nApp: HRV-4\nPlatform: ${Platform.OS}\n`
+  );
+  const mailtoUrl = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
+
+  Linking.canOpenURL(mailtoUrl)
+    .then((supported) => {
+      if (supported) {
+        return Linking.openURL(mailtoUrl);
+      } else {
+        // Fallback: try opening mailto directly
+        return Linking.openURL(`mailto:${SUPPORT_EMAIL}`);
+      }
+    })
+    .catch((error) => {
+      console.error('Error opening email:', error);
+      Alert.alert(
+        'Email Not Available',
+        `Please send your support request to ${SUPPORT_EMAIL}`,
+        [{ text: 'OK' }]
+      );
+    });
+}
 
 // Group FAQs by category
 function groupByCategory(items: FAQItem[]) {
@@ -142,10 +171,11 @@ export default function FAQScreen() {
           <ThemedText style={styles.contactText}>
             Reach out to our support team and we{'\u2019'}ll get back to you as soon as possible.
           </ThemedText>
-          <TouchableOpacity style={styles.contactButton}>
+          <TouchableOpacity style={styles.contactButton} onPress={openSupportEmail}>
             <Ionicons name="mail-outline" size={18} color="#FFF" />
             <ThemedText style={styles.contactButtonText}>Contact Support</ThemedText>
           </TouchableOpacity>
+          <ThemedText style={styles.emailHint}>{SUPPORT_EMAIL}</ThemedText>
         </View>
       </ScrollView>
       </SafeAreaView>
@@ -155,7 +185,7 @@ export default function FAQScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: 18,paddingTop:10, paddingBottom: 40 },
+  scrollContent: { paddingHorizontal: 18, paddingTop: 10, paddingBottom: 40 },
 
   // Intro
   introCard: {
@@ -276,5 +306,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#FFF',
+  },
+  emailHint: {
+    fontSize: 12,
+    color: 'rgba(67,79,77,0.4)',
+    marginTop: 10,
   },
 });
