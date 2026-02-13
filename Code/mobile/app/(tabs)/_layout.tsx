@@ -97,16 +97,18 @@ export default function TabLayout() {
                 name="sensors"
                 options={{
                     title: 'Sensors',
-                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="sensors" color={color} focused={focused} />,
+                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="sensors_watch" color={color} focused={focused} />,
                 }}
             />
+            {/*
             <Tabs.Screen
-                name="faq"
+                name="stress"
                 options={{
-                    title: 'FAQ',
+                    title: 'Stress & ECG',
                     tabBarIcon: ({ color, focused }) => <TabBarIcon name="chart" color={color} focused={focused} />,
                 }}
             />
+            */}
             <Tabs.Screen
                 name="activities"
                 options={{
@@ -114,7 +116,16 @@ export default function TabLayout() {
                     tabBarIcon: ({ color, focused }) => <TabBarIcon name="activities" color={color} focused={focused} />,
                 }}
             />
+            {/*<Tabs.Screen
+                name="profile"
+                options={{
+                    title: 'Activities',
+                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="profile" color={color} focused={focused} />,
+                }}
+            />*/}
             <Tabs.Screen name="profile" options={{ href: null }} />
+            <Tabs.Screen name="faq" options={{ href: null }} />
+            <Tabs.Screen name="stress" options={{ href: null }} />
         </Tabs>
     );
 }

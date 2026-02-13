@@ -56,6 +56,7 @@ export const PageHeader = ({ title, variant = 'default' }: PageHeaderProps) => {
     );
 };
 
+
 const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
