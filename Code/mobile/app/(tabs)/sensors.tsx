@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,6 +11,9 @@ import {
   Linking, //For bluetooth linking
   Platform,
   Alert,
+  NativeModules, //for Kotlin
+  NativeEventEmitter, //for communication with Kotlin
+  PermissionsAndroid //for bluetooth permissions etc.
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
@@ -21,10 +24,77 @@ const { width } = Dimensions.get('window');
 
 const Sensors: React.FC = () => {
   // iOS'ta Bluetooth'u programatik olarak açıp kapama yok
+
+  const { PolarModule } = NativeModules;
+  const polarEmitter = new NativeEventEmitter(PolarModule);
+
+  const [foundDeviceId, setFoundDeviceId] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [hr, setHr] = useState<number | null>(null);
+
+  useEffect(() => {
+    const foundSub = polarEmitter.addListener('onDeviceFound', (deviceId) => {
+      console.log('Device found:', deviceId);
+      setFoundDeviceId(deviceId);
+    });
+
+    const connectedSub = polarEmitter.addListener('onDeviceConnected', (deviceId) => {
+      console.log('Connected to:', deviceId);
+      setIsConnected(true);
+      PolarModule.startHrStreaming(); // start streaming automatically
+    });
+
+    const hrSub = polarEmitter.addListener('onHrData', (hrValue) => {
+      console.log('HR:', hrValue);
+      setHr(hrValue);
+    });
+
+    return () => {
+      foundSub.remove();
+      connectedSub.remove();
+      hrSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (foundDeviceId) {
+      PolarModule.connectToDevice(foundDeviceId);
+    }
+  }, [foundDeviceId])
+
+  const requestBluetoothPermissions = async () => {
+    if (Platform.OS === 'android') {
+      await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+      ]);
+    }
+    else {
+      //kill yourself idk
+    }
+  };
+
+  async function helloPolar() {
+    const result = await PolarModule.sayHello();
+    console.log(result);
+  }
+
+  async function startPolar() {
+    try {
+      await requestBluetoothPermissions();
+      await PolarModule.initializeSdk();
+      await PolarModule.scanForDevice();
+    } 
+    catch (error) {
+      console.error(error);
+    }
+  }
   
   const [isBluetoothEnabled, setIsBluetoothEnabled] = useState(true);
 
   // Bluetooth navigate to settings
+  //TODO we most probably gonna need to change it
   const openBluetoothSettings = () => {
     if (Platform.OS === 'ios') {
       
@@ -71,7 +141,7 @@ const Sensors: React.FC = () => {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionLabel}>Connect with</Text>
           
-          <TouchableOpacity style={styles.largeWatchCard} activeOpacity={0.9}>
+          <TouchableOpacity style={styles.largeWatchCard} activeOpacity={0.9} onPress={startPolar}>
             <View style={styles.watchImageWrapper}>
               <Image 
                 source={require('@/assets/images/sensor.png')} 
