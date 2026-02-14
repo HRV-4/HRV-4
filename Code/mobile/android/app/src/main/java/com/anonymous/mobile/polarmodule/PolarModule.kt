@@ -7,18 +7,22 @@ import android.content.Context
 import android.content.Intent 
 import android.app.Activity 
 import com.facebook.react.bridge.ReactApplicationContext 
-import com.facebook.react.bridge.ReactContextBaseJavaModule 
+import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod 
+import com.facebook.react.ReactApplication
+import com.facebook.react.ReactInstanceManager
+import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import io.reactivex.rxjava3.disposables.Disposable 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers 
 import com.polar.sdk.api.PolarBleApi 
 import com.polar.sdk.api.PolarBleApiCallback 
 import com.polar.sdk.api.PolarBleApiDefaultImpl.defaultImplementation 
-import com.polar.sdk.api.model.PolarDeviceInfo 
+import com.polar.sdk.api.model.PolarDeviceInfo
+import com.polar.sdk.api.model.PolarHrData
 
 class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) { 
     private lateinit var api: PolarBleApi 
@@ -63,6 +67,7 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
                 
                 override fun deviceConnected(info: PolarDeviceInfo) {
                     deviceId = info.deviceId 
+                    
                     val params = Arguments.createMap()
                     params.putString("deviceId", info.deviceId)
                     sendEvent("onDeviceConnected", params)
@@ -141,17 +146,27 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     
     @ReactMethod 
     fun startHrStreaming(promise: Promise) { 
-        val id = deviceId ?: return promise.reject("NO_DEVICE", "No device connected") 
+        val id = deviceId ?: return promise.reject("NO_DEVICE", "No device connected")
+
         hrDisposable?.dispose()
 
         hrDisposable = api.startHrStreaming(id) 
             .observeOn(AndroidSchedulers.mainThread()) 
             .subscribe( 
                 { 
-                    hrData ->
+                    hrData: PolarHrData ->
+                    for (sample in hrData.samples) {
+
                         val params = Arguments.createMap()
-                        params.putInt("hr", hrData.hr)
-                        sendEvent("onHrData", params) 
+                        params.putInt("hr", sample.hr)
+
+                        // If you also want RR intervals:
+                        if (sample.rrsMs.isNotEmpty()) {
+                            params.putInt("rr", sample.rrsMs[0])
+                        }
+
+                        sendEvent("onHrData", params)
+                    }
                 }, 
                 { 
                     error ->
@@ -169,10 +184,6 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
             .emit(eventName, params)
     }
     
-    private fun getActivity(): Activity? { 
-        return currentActivity 
-    } 
-    
     override fun invalidate() { 
         scanDisposable?.dispose() 
         hrDisposable?.dispose()
@@ -180,5 +191,15 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
         if (::api.isInitialized) { 
             api.shutDown() 
         } 
+    }
+
+    @ReactMethod
+    fun addListener(eventName: String) {
+        // Required for RN built-in Event Emitter Calls.
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int) {
+        // Required for RN built-in Event Emitter Calls.
     }
 }

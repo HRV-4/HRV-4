@@ -33,13 +33,13 @@ const Sensors: React.FC = () => {
   const [hr, setHr] = useState<number | null>(null);
 
   useEffect(() => {
-    const foundSub = polarEmitter.addListener('onDeviceFound', (deviceId) => {
-      console.log('Device found:', deviceId);
-      setFoundDeviceId(deviceId);
+    const foundSub = polarEmitter.addListener('onDeviceFound', (event) => {
+      console.log('Device found:', event);
+      setFoundDeviceId(event.deviceId);
     });
 
-    const connectedSub = polarEmitter.addListener('onDeviceConnected', (deviceId) => {
-      console.log('Connected to:', deviceId);
+    const connectedSub = polarEmitter.addListener('onDeviceConnected', (event) => {
+      console.log('Connected to:', event.deviceId);
       setIsConnected(true);
       PolarModule.startHrStreaming(); // start streaming automatically
     });
