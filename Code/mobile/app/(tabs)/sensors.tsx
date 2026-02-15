@@ -42,6 +42,7 @@ const Sensors: React.FC = () => {
       console.log('Connected to:', event.deviceId);
       setIsConnected(true);
       PolarModule.startHrStreaming(); // start streaming automatically
+      //PolarModule.startPPiStreaming();
     });
 
     const hrSub = polarEmitter.addListener('onHrData', (hrValue) => {
@@ -49,10 +50,15 @@ const Sensors: React.FC = () => {
       setHr(hrValue);
     });
 
+    const ppiSub = polarEmitter.addListener('onPpiData', (data) => {
+      console.log('PPIs:', data.ppi);
+    });
+
     return () => {
       foundSub.remove();
       connectedSub.remove();
       hrSub.remove();
+      ppiSub.remove();
     };
   }, []);
 

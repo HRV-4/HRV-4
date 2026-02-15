@@ -1,5 +1,8 @@
 package com.anonymous.mobile.polarmodule 
 
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
 import android.util.Log 
 import android.bluetooth.BluetoothAdapter 
 import android.bluetooth.BluetoothManager 
@@ -23,6 +26,7 @@ import com.polar.sdk.api.PolarBleApiCallback
 import com.polar.sdk.api.PolarBleApiDefaultImpl.defaultImplementation 
 import com.polar.sdk.api.model.PolarDeviceInfo
 import com.polar.sdk.api.model.PolarHrData
+import com.polar.sdk.api.model.PolarPpiData
 
 class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) { 
     private lateinit var api: PolarBleApi 
@@ -30,6 +34,9 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     
     private var scanDisposable: Disposable? = null
     private var hrDisposable: Disposable? = null
+    private var ppiDisposable: Disposable? = null
+
+    private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     
     override fun getName(): String { 
         return "PolarModule" 
@@ -77,7 +84,13 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
                     val params = Arguments.createMap()
                     params.putString("deviceId", info.deviceId)
                     sendEvent("onDeviceDisconnected", params)
-                } 
+                }
+
+                override fun bleSdkFeatureReady(identifier: String, feature: PolarBleApi.PolarBleSdkFeature) {
+                    if (feature == PolarBleApi.PolarBleSdkFeature.FEATURE_POLAR_ONLINE_STREAMING) {
+                        startPPiStreamingInternal()
+                    }
+                }
             }) 
                 
             promise.resolve("SDK initialized") 
@@ -160,11 +173,6 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
                         val params = Arguments.createMap()
                         params.putInt("hr", sample.hr)
 
-                        // If you also want RR intervals:
-                        if (sample.rrsMs.isNotEmpty()) {
-                            params.putInt("rr", sample.rrsMs[0])
-                        }
-
                         sendEvent("onHrData", params)
                     }
                 }, 
@@ -176,7 +184,37 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
                 } 
             ) 
         promise.resolve("HR streaming started") 
-    } 
+    }
+
+    private fun startPPiStreamingInternal() {
+        val id = deviceId ?: return
+        ppiDisposable?.dispose()
+
+        ppiDisposable = api.startPpiStreaming(id)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { ppiData ->
+                    val currentTime = timeFormat.format(Date())
+                    val params = Arguments.createMap()
+                    val ppiArray = Arguments.createArray()
+
+                    for (sample in ppiData.samples) {
+                        val sampleMap = Arguments.createMap()
+                        sampleMap.putInt("ppi", sample.ppi)
+                        sampleMap.putString("timestamp", currentTime)
+                        ppiArray.pushMap(sampleMap)
+                    }
+                    
+                    params.putArray("ppi", ppiArray)
+                    sendEvent("onPpiData", params)
+                },
+                { error ->
+                    val params = Arguments.createMap()
+                    params.putString("message", error.message ?: "Unknown PPI error")
+                    sendEvent("onPPiError", params)
+                }
+            )
+    }
     
     private fun sendEvent(eventName: String, params: WritableMap) {
         reactApplicationContext
@@ -187,6 +225,7 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     override fun invalidate() { 
         scanDisposable?.dispose() 
         hrDisposable?.dispose()
+        ppiDisposable?.dispose()
 
         if (::api.isInitialized) { 
             api.shutDown() 
