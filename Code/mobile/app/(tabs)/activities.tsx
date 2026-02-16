@@ -25,13 +25,13 @@ const { width } = Dimensions.get('window');
 // ─── CONSTANTS & TYPES ───
 
 const ACTIVITY_CATEGORIES = [
+  { id: 'eat_drink', name: 'Eat/Drink', icon: 'restaurant-outline', color: '#E3C937' },
+  { id: 'sleep', name: 'Sleep', icon: 'moon-outline', color: '#7B9FE0' },
+  { id: 'personal_hygiene', name: 'Personal Hygiene', icon: 'water-outline', color: '#90E2DA' },
   { id: 'public_transportation', name: 'Public Transport', icon: 'bus-outline', color: '#7B9FE0' },
   { id: 'drive', name: 'Drive', icon: 'car-outline', color: '#A0ABA8' },
   { id: 'rest', name: 'Rest', icon: 'bed-outline', color: '#B8A9E0' },
-  { id: 'eat_drink', name: 'Eat/Drink', icon: 'restaurant-outline', color: '#E3C937' },
   { id: 'manual_work', name: 'Manual Work', icon: 'hammer-outline', color: '#FF8A5C' },
-  { id: 'sleep', name: 'Sleep', icon: 'moon-outline', color: '#7B9FE0' },
-  { id: 'personal_hygiene', name: 'Personal Hygiene', icon: 'water-outline', color: '#90E2DA' },
   { id: 'exercise', name: 'Exercise', icon: 'flame-outline', color: '#FF6B6B' },
   { id: 'communication', name: 'Communication', icon: 'chatbubble-outline', color: '#5CB89A' },
   { id: 'other', name: 'Other Activities', icon: 'ellipsis-horizontal-outline', color: '#A0ABA8' },
@@ -134,11 +134,6 @@ async function saveActivityToBackend(activity: Activity): Promise<boolean> {
       console.warn('No auth token found, saving locally only');
       return false;
     }
-
-    // DEBUG — remove after fixing
-    console.log('DEBUG token (first 80 chars):', token.substring(0, 80));
-    console.log('DEBUG token starts with {?:', token.startsWith('{'));
-    console.log('DEBUG userId:', userId);
 
     const response = await fetch(API.activities(), {
       method: 'POST',
