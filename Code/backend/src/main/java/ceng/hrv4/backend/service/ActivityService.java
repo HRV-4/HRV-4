@@ -25,17 +25,25 @@ public interface ActivityService {
      * Finds an Activity record by its ID.
      *
      * @param MeasurementID the unique identifier of the activity
-     * @return the ActivityResponseDto if found, otherwise throws an exception
+     * @return the ActivityResponseDto if found
      */
     ResponseEntity<ActivityResponseDto> findActivityByMeasurementID(String MeasurementID);
 
     /**
-     * Finds an Activity record by its ActivityName.
+     * Finds Activity records by their category.
      *
-     * @param ActivityName the ActivityName of the activity
-     * @return the ActivityResponseDto if found, otherwise throws an exception
+     * @param category the category to search for
+     * @return a list of ActivityResponseDto objects matching the category
      */
-    ResponseEntity<ActivityResponseDto> findActivityByName(String ActivityName);
+    ResponseEntity<List<ActivityResponseDto>> findActivityByCategory(String category);
+
+    /**
+     * Finds Activity records by user ID.
+     *
+     * @param userId the user ID to search for
+     * @return a list of ActivityResponseDto objects belonging to the user
+     */
+    ResponseEntity<List<ActivityResponseDto>> findActivityByUserId(String userId);
 
     /**
      * Retrieves all Activity records from the database.
@@ -48,9 +56,7 @@ public interface ActivityService {
      * Deletes an Activity record by its ID.
      *
      * @param MeasurementID the unique identifier of the activity to delete
-     * @return
+     * @return confirmation message
      */
     ResponseEntity<String> deleteActivityByMeasurementID(String MeasurementID);
 }
-
-
