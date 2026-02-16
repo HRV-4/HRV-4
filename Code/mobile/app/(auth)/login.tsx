@@ -45,8 +45,57 @@ export default function LoginScreen() {
         throw new Error(msg || 'Login failed');
       }
 
-      const accessToken = await response.text();
+      // ─── Parse response ───
+      // Backend may return JSON: { accessToken, refreshToken, userId, ... }
+      // or plain text token string
+      const rawText = await response.text();
+      let accessToken: string;
+      let refreshToken: string | null = null;
+      let userId: string | null = null;
+
+      try {
+        const json = JSON.parse(rawText);
+        // JSON response — extract fields
+        accessToken = json.accessToken || json.access_token || json.token || rawText;
+        refreshToken = json.refreshToken || json.refresh_token || null;
+        userId = json.userId || json.user_id || json.id || null;
+      } catch {
+        // Not JSON — treat entire response as the token
+        accessToken = rawText.replace(/^"|"$/g, ''); // strip surrounding quotes if any
+      }
+
+      // ─── Store tokens ───
       await AsyncStorage.setItem('accessToken', accessToken);
+
+      if (refreshToken) {
+        await AsyncStorage.setItem('refreshToken', refreshToken);
+      }
+
+      if (userId) {
+        await AsyncStorage.setItem('userId', userId);
+      }
+
+      // If userId wasn't in login response, fetch it from /user/by-email
+      if (!userId && email) {
+        try {
+          const userRes = await fetch(API.userByEmail(email), {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            const fetchedId = userData.id || userData.userId || userData._id;
+            if (fetchedId) {
+              await AsyncStorage.setItem('userId', fetchedId);
+            }
+          }
+        } catch (e) {
+          // Non-critical — userId will be null, some features won't work
+          console.warn('Could not fetch userId after login:', e);
+        }
+      }
 
       router.replace('/dashboard');
     } catch (err: any) {
