@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
@@ -189,11 +190,21 @@ function HRVSection() {
 }
 
 function QuickActions() {
+  const router = useRouter();
+
   const actions = [
-    { label: 'Activity', grad: ['#FFCC00', '#FFE500'], icon: <WalkIcon /> },
-    { label: 'Sleep', grad: ['#0084FF', '#BBF1FF'], icon: <SleepIcon /> },
-    { label: 'Meditation', grad: ['#7700FF', '#DFBBFF'], icon: <LotusIcon /> },
+    { label: 'Activity', grad: ['#FFCC00', '#FFE500'], icon: <WalkIcon />, category: 'exercise' },
+    { label: 'Sleep', grad: ['#0084FF', '#BBF1FF'], icon: <SleepIcon />, category: 'sleep' },
+    { label: 'Meditation', grad: ['#7700FF', '#DFBBFF'], icon: <LotusIcon />, category: 'other' },
   ];
+
+  const handleLog = (category: string) => {
+    // Navigate to Activities screen with pre-selected category and open modal
+    router.push({
+      pathname: '/activities',
+      params: { preselectedCategory: category, openModal: 'true' },
+    });
+  };
 
   return (
     <View style={styles.quickActionsCard}>
@@ -214,7 +225,7 @@ function QuickActions() {
               </Svg>
               {act.icon}
             </View>
-            <TouchableOpacity style={styles.logButton}>
+            <TouchableOpacity style={styles.logButton} onPress={() => handleLog(act.category)}>
               <ThemedText style={styles.logButtonText}>Log</ThemedText>
             </TouchableOpacity>
           </View>
@@ -281,7 +292,7 @@ const styles = StyleSheet.create({
   
   dashedLineContainer: { 
     position: 'absolute', 
-    top: 20, // Çizgiyi yukarı taşı
+    top: 20,
     left: 0, 
     right: 0, 
     zIndex: 0 
