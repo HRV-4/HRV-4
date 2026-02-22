@@ -41,8 +41,7 @@ const Sensors: React.FC = () => {
     const connectedSub = polarEmitter.addListener('onDeviceConnected', (event) => {
       console.log('Connected to:', event.deviceId);
       setIsConnected(true);
-      PolarModule.startHrStreaming(); // start streaming automatically
-      //PolarModule.startPPiStreaming();
+      //PolarModule.startHrStreaming(); // start streaming automatically
     });
 
     const hrSub = polarEmitter.addListener('onHrData', (hrValue) => {
@@ -51,7 +50,7 @@ const Sensors: React.FC = () => {
     });
 
     const ppiSub = polarEmitter.addListener('onPpiData', (data) => {
-      console.log('PPIs:', data.ppi);
+      console.log('PPIs:', data);
     });
 
     return () => {
@@ -68,18 +67,28 @@ const Sensors: React.FC = () => {
     }
   }, [foundDeviceId])
 
-  const requestBluetoothPermissions = async () => {
-    if (Platform.OS === 'android') {
-      await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-      ]);
-    }
-    else {
-      //kill yourself idk
-    }
-  };
+    const requestBluetoothPermissions = async () => {
+      if (Platform.OS === 'android') {
+        const result = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+        ]);
+
+        console.log(result);
+
+        const allGranted = Object.values(result).every(
+          status => status === PermissionsAndroid.RESULTS.GRANTED
+        );
+
+        if (!allGranted) {
+          throw new Error("Bluetooth permissions not granted");
+        }
+      }
+      else {
+        // kill yourself idk
+      }
+    };
 
   async function helloPolar() {
     const result = await PolarModule.sayHello();

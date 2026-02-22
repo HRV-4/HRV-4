@@ -91,6 +91,11 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
                         startPPiStreamingInternal()
                     }
                 }
+
+                override fun batteryLevelReceived(identifier: String, level: Int) {
+                    Log.d("POLAR_DEBUG", "BATTERY LEVEL: $level")
+                    //implement battery streaming?
+                }
             }) 
                 
             promise.resolve("SDK initialized") 
@@ -116,7 +121,8 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
                         val params = Arguments.createMap()
                         params.putString("deviceId", device.deviceId)
                         sendEvent("onDeviceFound", params)
-                        scanDisposable?.dispose()
+                        Log.d("POLAR_DEBUG", "Device info: ${device}")
+                        //scanDisposable?.dispose()
                 }, 
                 { 
                     error -> promise.reject("SCAN_ERROR", error) 
@@ -194,18 +200,18 @@ class PolarModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { ppiData ->
-                    val currentTime = timeFormat.format(Date())
                     val params = Arguments.createMap()
                     val ppiArray = Arguments.createArray()
 
+                    val batchTimestamp = System.currentTimeMillis()
+
                     for (sample in ppiData.samples) {
-                        val sampleMap = Arguments.createMap()
-                        sampleMap.putInt("ppi", sample.ppi)
-                        sampleMap.putString("timestamp", currentTime)
-                        ppiArray.pushMap(sampleMap)
+                        ppiArray.pushInt(sample.ppi)
                     }
-                    
-                    params.putArray("ppi", ppiArray)
+
+                    params.putDouble("timestamp", batchTimestamp.toDouble())
+                    params.putArray("ppis", ppiArray)
+
                     sendEvent("onPpiData", params)
                 },
                 { error ->
