@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/themed-text';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useAppColors } from '@/hooks/use-app-colors';
 
 interface FAQItem {
   question: string;
@@ -110,30 +111,32 @@ function groupByCategory(items: FAQItem[]) {
 }
 
 function AccordionItem({ item }: { item: FAQItem }) {
+  const colors = useAppColors();
   const [open, setOpen] = useState(false);
 
   return (
     <TouchableOpacity
-      style={styles.accordionItem}
+      style={[styles.accordionItem, { backgroundColor: colors.innerCardBg }]}
       onPress={() => setOpen(!open)}
       activeOpacity={0.7}
     >
       <View style={styles.questionRow}>
-        <ThemedText style={styles.questionText}>{item.question}</ThemedText>
+        <ThemedText style={[styles.questionText, { color: colors.textPrimary }]}>{item.question}</ThemedText>
         <Ionicons
           name={open ? 'chevron-up' : 'chevron-down'}
           size={18}
-          color="rgba(67,79,77,0.4)"
+          color={colors.textMuted}
         />
       </View>
       {open && (
-        <ThemedText style={styles.answerText}>{item.answer}</ThemedText>
+        <ThemedText style={[styles.answerText, { color: colors.textTertiary }]}>{item.answer}</ThemedText>
       )}
     </TouchableOpacity>
   );
 }
 
 export default function FAQScreen() {
+  const colors = useAppColors();
   const grouped = groupByCategory(FAQ_DATA);
 
   return (
@@ -145,20 +148,20 @@ export default function FAQScreen() {
       >
         <PageHeader title="FAQ" variant="default" />
         {/* Intro */}
-        <View style={styles.introCard}>
+        <View style={[styles.introCard, { backgroundColor: colors.cardBg, shadowColor: colors.shadowColor }]}>
           <Ionicons name="help-circle-outline" size={28} color="#5CB89A" />
-          <ThemedText style={styles.introTitle}>
+          <ThemedText style={[styles.introTitle, { color: colors.textPrimary }]}>
             How can we help?
           </ThemedText>
-          <ThemedText style={styles.introSubtitle}>
+          <ThemedText style={[styles.introSubtitle, { color: colors.textTertiary }]}>
             Find answers to common questions about HRV tracking, using the app, and improving your health.
           </ThemedText>
         </View>
 
         {/* FAQ Sections */}
         {grouped.map(([category, items]) => (
-          <View key={category} style={styles.sectionCard}>
-            <ThemedText style={styles.sectionTitle}>{category}</ThemedText>
+          <View key={category} style={[styles.sectionCard, { backgroundColor: colors.cardBg, shadowColor: colors.shadowColor }]}>
+            <ThemedText style={[styles.sectionTitle, { color: colors.textPrimary }]}>{category}</ThemedText>
             {items.map((item, index) => (
               <AccordionItem key={index} item={item} />
             ))}
@@ -166,9 +169,9 @@ export default function FAQScreen() {
         ))}
 
         {/* Contact */}
-        <View style={styles.contactCard}>
-          <ThemedText style={styles.contactTitle}>Still have questions?</ThemedText>
-          <ThemedText style={styles.contactText}>
+        <View style={[styles.contactCard, { backgroundColor: colors.cardBg, shadowColor: colors.shadowColor }]}>
+          <ThemedText style={[styles.contactTitle, { color: colors.textPrimary }]}>Still have questions?</ThemedText>
+          <ThemedText style={[styles.contactText, { color: colors.textTertiary }]}>
             Reach out to our support team and we{'\u2019'}ll get back to you as soon as possible.
           </ThemedText>
           <TouchableOpacity style={styles.contactButton} onPress={openSupportEmail}>
@@ -236,7 +239,6 @@ const styles = StyleSheet.create({
 
   // Accordion
   accordionItem: {
-    backgroundColor: '#F8F8F8',
     borderRadius: 14,
     padding: 14,
     marginBottom: 8,

@@ -13,6 +13,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useAppColors } from '@/hooks/use-app-colors';
 
 const { width } = Dimensions.get('window');
 const WEIGHT_REGULAR = '400';
@@ -125,13 +126,14 @@ function HeroCard() {
 }
 
 function HRVSection() {
+  const colors = useAppColors();
   return (
-    <View style={styles.cardContainer}>
+    <View style={[styles.cardContainer, { backgroundColor: colors.cardBg, shadowColor: colors.shadowColor }]}>
       <View style={styles.hrvTitleRow}>
         <PulseIcon />
-        <ThemedText style={styles.hrvTitle}>Heart Rate Variability</ThemedText>
+        <ThemedText style={[styles.hrvTitle, { color: colors.textPrimary }]}>Heart Rate Variability</ThemedText>
       </View>
-      <ThemedText style={styles.hrvDesc}>
+      <ThemedText style={[styles.hrvDesc, { color: colors.textSecondary }]}>
         Your HRV is above your baseline, indicating good{'\n'}recovery.
       </ThemedText>
       
@@ -167,7 +169,7 @@ function HRVSection() {
                       style={[styles.bar, { height: item.val }]}
                     />
                   ) : (
-                    <View style={[styles.bar, { height: item.val, backgroundColor: '#D9D9D9' }]} />
+                    <View style={[styles.bar, { height: item.val, backgroundColor: colors.barInactive }]} />
                   )}
                 </View>
                 <ThemedText style={[styles.dayLabel, item.active && styles.activeDayLabel]}>
@@ -190,6 +192,7 @@ function HRVSection() {
 }
 
 function QuickActions() {
+  const colors = useAppColors();
   const router = useRouter();
 
   const actions = [
@@ -207,12 +210,12 @@ function QuickActions() {
   };
 
   return (
-    <View style={styles.quickActionsCard}>
-      <ThemedText style={styles.sectionTitle}>Quick Actions</ThemedText>
+    <View style={[styles.quickActionsCard, { backgroundColor: colors.cardBg, shadowColor: colors.shadowColor }]}>
+      <ThemedText style={[styles.sectionTitle, { color: colors.textPrimary }]}>Quick Actions</ThemedText>
       <View style={styles.actionsRow}>
         {actions.map((act, i) => (
-          <View key={i} style={styles.actionBox}>
-            <ThemedText style={styles.actionLabel}>{act.label}</ThemedText>
+          <View key={i} style={[styles.actionBox, { backgroundColor: colors.innerCardBg }]}>
+            <ThemedText style={[styles.actionLabel, { color: colors.textSecondary }]}>{act.label}</ThemedText>
             <View style={styles.iconCircle}>
               <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
                 <Defs>
@@ -238,6 +241,7 @@ function QuickActions() {
 //MAIN SCREEN 
 
 export default function InsightsScreen() {
+  const colors = useAppColors();
   return (
     <ScreenBackground style={styles.container}>
       <SafeAreaView edges={['top']} style={{ flex: 1 }}>
@@ -279,12 +283,12 @@ const styles = StyleSheet.create({
 
   // HRV Section
   cardContainer: {
-    backgroundColor: '#FCFCFC', borderRadius: 20, padding: 18, marginBottom: 16,
-    elevation: 4, shadowColor: '#3D4E4A', shadowOffset: { width: 0, height: 8 },
+    borderRadius: 20, padding: 18, marginBottom: 16,
+    elevation: 4, shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08, shadowRadius: 12,
   },
   hrvTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  hrvTitle: { fontSize: 16, fontWeight: WEIGHT_SEMIBOLD as any, color: '#434F4D' },
+  hrvTitle: { fontSize: 16, fontWeight: WEIGHT_SEMIBOLD as any, color: undefined },
   hrvDesc: { fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any, color: 'rgba(67,79,77,0.80)', marginBottom: 12, lineHeight: 20 },
   
   chartWrapper: { position: 'relative', marginTop: 8 },
@@ -317,7 +321,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   valueText: { fontSize: 12, color: '#FFF', fontWeight: WEIGHT_SEMIBOLD as any },
-  dayLabel: { marginTop: 8, fontSize: 12, color: '#D9D9D9', fontWeight: WEIGHT_SEMIBOLD as any },
+  dayLabel: { marginTop: 8, fontSize: 12, color: undefined, fontWeight: WEIGHT_SEMIBOLD as any },
   activeDayLabel: { color: '#90E1DA' },
 
   // Baseline
@@ -328,13 +332,13 @@ const styles = StyleSheet.create({
 
   // Quick Actions
   quickActionsCard: { 
-    backgroundColor: '#FCFCFC', borderRadius: 20, padding: 18, marginBottom: 30, 
+    borderRadius: 20, padding: 18, marginBottom: 30, 
     elevation: 4, shadowColor: '#3D4E4A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8
   },
   sectionTitle: { fontSize: 16, fontWeight: WEIGHT_SEMIBOLD as any, color: '#434F4D', marginBottom: 14 },
   actionsRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   actionBox: { 
-    flex: 1, backgroundColor: '#F8F8F8', borderRadius: 20, 
+    flex: 1, borderRadius: 20, 
     paddingTop: 12, paddingBottom: 12, alignItems: 'center' 
   },
   actionLabel: { fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any, color: 'rgba(67,79,77,0.80)', marginBottom: 8 },
@@ -344,7 +348,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   logButton: { 
-    width: 51, height: 21, backgroundColor: '#E7E7E7', 
+    width: 51, height: 21, 
     borderRadius: 9, justifyContent: 'center', alignItems: 'center' 
   },
   logButtonText: { fontSize: 12, fontWeight: WEIGHT_SEMIBOLD as any, color: '#FFFFFF' },

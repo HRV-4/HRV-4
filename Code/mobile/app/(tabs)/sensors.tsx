@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useAppColors } from '@/hooks/use-app-colors';
 
 //Polar parts
 // import { NativeModules, NativeEventEmitter } from 'react-native';
@@ -66,6 +67,7 @@ async function requestBLEPermissions(): Promise<boolean> {
 }
 
 const Sensors: React.FC = () => {
+  const colors = useAppColors();
   const [bleState, setBleState] = useState<'PoweredOn' | 'PoweredOff' | 'Unknown'>('PoweredOn');
   const [isScanning, setIsScanning] = useState(false);
   const [discoveredDevices, setDiscoveredDevices] = useState<DiscoveredDevice[]>([]);
@@ -78,10 +80,6 @@ const Sensors: React.FC = () => {
   const mockIntervalRef = useRef<any>(null);
 
   const startScan = useCallback(async () => {
-    // Since ble does not work on emulator close temporarily
-    // const hasPermission = await requestBLEPermissions();
-    // if (!hasPermission) return;
-
     setDiscoveredDevices([]);
     setScanError(null);
     setIsScanning(true);
@@ -117,7 +115,6 @@ const Sensors: React.FC = () => {
         setHeartRate(fakeHr);
       }, 1000);
 
-      
       mockIntervalRef.current = interval;
     }, 2000); 
   }, []);
@@ -127,7 +124,6 @@ const Sensors: React.FC = () => {
     
     console.log("Cihaz bağlantısı kesildi (Mock)");
     
-    // clean interval
     if (mockIntervalRef.current) {
       clearInterval(mockIntervalRef.current);
       mockIntervalRef.current = null;
@@ -159,12 +155,12 @@ const Sensors: React.FC = () => {
         <PageHeader title="Sensors" variant="default" />
 
         {/* ─── Connection Status ─── */}
-        <View style={styles.statusRectangle}>
+        <View style={[styles.statusRectangle, { backgroundColor: colors.cardBgAlt, shadowColor: colors.shadowColor }]}>
           {connectedDevice ? (
             <View style={styles.connectedStatusRow}>
               <View style={styles.connectedDot} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.statusTextConnected}>
+                <Text style={[styles.statusTextConnected, { color: colors.textPrimary }]}>
                   Connected to {connectedDevice.name || 'Unknown Device'}
                 </Text>
                 {heartRate !== null && (
@@ -173,12 +169,12 @@ const Sensors: React.FC = () => {
                   </Text>
                 )}
               </View>
-              <TouchableOpacity style={styles.disconnectBtn} onPress={disconnectDevice}>
-                <Text style={styles.disconnectBtnText}>Disconnect</Text>
+              <TouchableOpacity style={[styles.disconnectBtn, { backgroundColor: colors.destructiveBg }]} onPress={disconnectDevice}>
+                <Text style={[styles.disconnectBtnText, { color: colors.destructive }]}>Disconnect</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <Text style={styles.statusText} numberOfLines={2}>
+            <Text style={[styles.statusText, { color: colors.textPrimary }]} numberOfLines={2}>
               You currently don{'\u2019'}t have{'\n'}a connected sensor.
             </Text>
           )}
@@ -186,19 +182,19 @@ const Sensors: React.FC = () => {
 
         {/* ─── Connect Section ─── */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionLabel}>Connect with</Text>
-          <TouchableOpacity style={styles.largeWatchCard} activeOpacity={0.9} onPress={startScan}>
+          <Text style={[styles.sectionLabel, { color: colors.textPrimary }]}>Connect with</Text>
+          <TouchableOpacity style={[styles.largeWatchCard, { backgroundColor: colors.cardBgAlt, shadowColor: colors.shadowColor }]} activeOpacity={0.9} onPress={startScan}>
             <View style={styles.watchImageWrapper}>
               <Image source={require('@/assets/images/sensor.png')} style={styles.largeWatchImage} resizeMode="contain" />
             </View>
-            <Text style={styles.watchLabel}>Polar Sensor</Text>
+            <Text style={[styles.watchLabel, { color: colors.textPrimary }]}>Polar Sensor</Text>
           </TouchableOpacity>
         </View>
 
         {/* ─── Scan Section ─── */}
-        <View style={styles.scanSection}>
+        <View style={[styles.scanSection, { backgroundColor: colors.cardBgAlt, shadowColor: colors.shadowColor }]}>
           <View style={styles.scanHeaderRow}>
-            <Text style={styles.sectionLabelInline}>Nearby Devices</Text>
+            <Text style={[styles.sectionLabelInline, { color: colors.textPrimary }]}>Nearby Devices</Text>
             <TouchableOpacity 
               style={[styles.scanButton, isScanning && styles.scanButtonActive]}
               onPress={isScanning ? stopScan : startScan}
@@ -233,38 +229,38 @@ const Sensors: React.FC = () => {
 
           {isScanning && discoveredDevices.length === 0 && (
             <View style={styles.scanningIndicator}>
-              <View style={styles.bluetoothIconCircle}>
+              <View style={[styles.bluetoothIconCircle, { backgroundColor: colors.accentLight, borderColor: colors.accentBorder }]}>
                 <Ionicons name="bluetooth" size={40} color="#5CB89A" />
               </View>
-              <Text style={styles.scanningText}>Looking for Polar sensors...</Text>
-              <Text style={styles.scanningHint}>Make sure your sensor is ON.</Text>
+              <Text style={[styles.scanningText, { color: colors.textPrimary }]}>Looking for Polar sensors...</Text>
+              <Text style={[styles.scanningHint, { color: colors.textTertiary }]}>Make sure your sensor is ON.</Text>
             </View>
           )}
 
           {discoveredDevices.length > 0 && (
             <View style={styles.deviceListContainer}>
-              <Text style={styles.listHeader}>FOUND {discoveredDevices.length} DEVICE(S)</Text>
+              <Text style={[styles.listHeader, { color: colors.textTertiary }]}>FOUND {discoveredDevices.length} DEVICE(S)</Text>
               {discoveredDevices.map((device) => (
                 <TouchableOpacity 
                   key={device.id} 
-                  style={styles.deviceRow}
+                  style={[styles.deviceRow, { borderBottomColor: colors.border }]}
                   onPress={() => connectToDevice(device.id, device.name)}
                   disabled={isConnecting !== null}
                 >
                   <View style={styles.deviceInfoRow}>
                     <Ionicons name={getSignalIcon(device.rssi)} size={18} color={getSignalColor(device.rssi)} />
                     <View style={styles.deviceTextCol}>
-                      <Text style={styles.deviceNameText} numberOfLines={1}>{device.name || 'Unknown Device'}</Text>
-                      <Text style={styles.deviceIdText} numberOfLines={1}>{device.id}</Text>
+                      <Text style={[styles.deviceNameText, { color: colors.textPrimary }]} numberOfLines={1}>{device.name || 'Unknown Device'}</Text>
+                      <Text style={[styles.deviceIdText, { color: colors.textMuted }]} numberOfLines={1}>{device.id}</Text>
                     </View>
                   </View>
                   <View style={styles.deviceActionGroup}>
                     {isConnecting === device.id ? (
                       <ActivityIndicator size="small" color="#5CB89A" />
                     ) : connectedDevice?.id === device.id ? (
-                      <View style={styles.connectedBadge}><Text style={styles.connectedBadgeText}>Connected</Text></View>
+                      <View style={[styles.connectedBadge, { backgroundColor: colors.accentLight }]}><Text style={styles.connectedBadgeText}>Connected</Text></View>
                     ) : (
-                      <TouchableOpacity style={styles.connectBtn} onPress={() => connectToDevice(device.id, device.name)}>
+                      <TouchableOpacity style={[styles.connectBtn, { backgroundColor: colors.accentLight }]} onPress={() => connectToDevice(device.id, device.name)}>
                         <Text style={styles.connectBtnText}>Connect</Text>
                       </TouchableOpacity>
                     )}
@@ -276,12 +272,11 @@ const Sensors: React.FC = () => {
 
           {!isScanning && discoveredDevices.length === 0 && bleState === 'PoweredOn' && (
             <View style={styles.emptyState}>
-              <Ionicons name="bluetooth-outline" size={36} color="rgba(67,79,77,0.2)" />
-              <Text style={styles.emptyStateText}>Tap "Scan" to search for nearby Polar devices.</Text>
+              <Ionicons name="bluetooth-outline" size={36} color={colors.textMuted} />
+              <Text style={[styles.emptyStateText, { color: colors.textMuted }]}>Tap "Scan" to search for nearby Polar devices.</Text>
             </View>
           )}
         </View>
-
 
       </ScrollView>
       </SafeAreaView>
@@ -293,49 +288,46 @@ const Sensors: React.FC = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: 19, paddingTop: 10, paddingBottom: 40 },
-  statusRectangle: { backgroundColor: '#FAFAFA', borderRadius: 28, paddingHorizontal: 24, paddingVertical: 18, minHeight: 79, justifyContent: 'center', marginBottom: 30, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
-  statusText: { fontSize: 17, color: '#434F4D', fontWeight: '500', lineHeight: 22, flexShrink: 1 },
+  statusRectangle: { borderRadius: 28, paddingHorizontal: 24, paddingVertical: 18, minHeight: 79, justifyContent: 'center', marginBottom: 30, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
+  statusText: { fontSize: 17, fontWeight: '500', lineHeight: 22, flexShrink: 1 },
   connectedStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   connectedDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#5CB89A' },
-  statusTextConnected: { fontSize: 16, color: '#434F4D', fontWeight: '600' },
+  statusTextConnected: { fontSize: 16, fontWeight: '600' },
   heartRateText: { fontSize: 14, color: '#FF6B6B', fontWeight: '600', marginTop: 2 },
-  disconnectBtn: { backgroundColor: 'rgba(220,69,69,0.1)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
-  disconnectBtnText: { fontSize: 13, fontWeight: '600', color: '#DC4545' },
+  disconnectBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  disconnectBtnText: { fontSize: 13, fontWeight: '600' },
   sectionContainer: { alignItems: 'center', marginBottom: 35 },
-  sectionLabel: { fontSize: 17, fontWeight: '600', color: '#434F4D', alignSelf: 'center', marginBottom: 20 },
-  largeWatchCard: { width: width * 0.6, height: 260, backgroundColor: '#FAFAFA', borderRadius: 28, alignItems: 'center', justifyContent: 'center', padding: 20, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 15 },
+  sectionLabel: { fontSize: 17, fontWeight: '600', alignSelf: 'center', marginBottom: 20 },
+  largeWatchCard: { width: width * 0.6, height: 260, borderRadius: 28, alignItems: 'center', justifyContent: 'center', padding: 20, elevation: 4, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 15 },
   watchImageWrapper: { flex: 1, justifyContent: 'center' },
   largeWatchImage: { width: 150, height: 190 },
-  watchLabel: { fontSize: 17, fontWeight: '600', color: '#434F4D', marginTop: 10 },
-  scanSection: { backgroundColor: '#FAFAFA', borderRadius: 20, padding: 18, marginBottom: 16, shadowColor: '#3D4E4A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  watchLabel: { fontSize: 17, fontWeight: '600', marginTop: 10 },
+  scanSection: { borderRadius: 20, padding: 18, marginBottom: 16, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
   scanHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  sectionLabelInline: { fontSize: 16, fontWeight: '600', color: '#434F4D' },
+  sectionLabelInline: { fontSize: 16, fontWeight: '600' },
   scanButton: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#5CB89A', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 8 },
   scanButtonActive: { backgroundColor: '#DC4545' },
   scanButtonText: { fontSize: 14, fontWeight: '600', color: '#FFF' },
   bleWarning: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(227,201,55,0.08)', borderRadius: 12, padding: 14, marginBottom: 12 },
   bleWarningText: { flex: 1, fontSize: 13, color: '#E3C937', lineHeight: 18 },
   scanningIndicator: { alignItems: 'center', paddingVertical: 30 },
-  bluetoothIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(92,184,154,0.1)', justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 2, borderColor: 'rgba(92,184,154,0.2)' },
-  scanningText: { fontSize: 16, fontWeight: '600', color: '#434F4D', marginBottom: 6 },
-  scanningHint: { fontSize: 13, color: 'rgba(67,79,77,0.55)', textAlign: 'center' },
+  bluetoothIconCircle: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 2 },
+  scanningText: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
+  scanningHint: { fontSize: 13, textAlign: 'center' },
   deviceListContainer: { marginTop: 4 },
-  listHeader: { fontSize: 12, fontWeight: '600', color: 'rgba(67,79,77,0.57)', marginBottom: 12, letterSpacing: 0.5 },
-  deviceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(84, 84, 88, 0.15)' },
+  listHeader: { fontSize: 12, fontWeight: '600', marginBottom: 12, letterSpacing: 0.5 },
+  deviceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth },
   deviceInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 12 },
   deviceTextCol: { flex: 1 },
-  deviceNameText: { fontSize: 16, color: '#434F4D', fontWeight: '500' },
-  deviceIdText: { fontSize: 11, color: 'rgba(67,79,77,0.35)', marginTop: 2 },
+  deviceNameText: { fontSize: 16, fontWeight: '500' },
+  deviceIdText: { fontSize: 11, marginTop: 2 },
   deviceActionGroup: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  connectBtn: { backgroundColor: 'rgba(92,184,154,0.12)', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10 },
+  connectBtn: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10 },
   connectBtnText: { fontSize: 13, fontWeight: '600', color: '#5CB89A' },
-  connectedBadge: { backgroundColor: 'rgba(92,184,154,0.12)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  connectedBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
   connectedBadgeText: { fontSize: 12, fontWeight: '600', color: '#5CB89A' },
   emptyState: { alignItems: 'center', paddingVertical: 30, gap: 10 },
-  emptyStateText: { fontSize: 14, color: 'rgba(67,79,77,0.4)', textAlign: 'center' },
-  infoCard: { backgroundColor: '#FAFAFA', borderRadius: 20, padding: 18, marginBottom: 30, shadowColor: '#3D4E4A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  infoTitle: { fontSize: 14, fontWeight: '600', color: '#434F4D', marginBottom: 8 },
-  infoText: { fontSize: 13, color: 'rgba(67,79,77,0.6)', lineHeight: 20 },
+  emptyStateText: { fontSize: 14, textAlign: 'center' },
 });
 
 export default Sensors;

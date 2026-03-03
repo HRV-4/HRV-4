@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ThemedText } from '@/components/themed-text';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
+import { useAppColors } from '@/hooks/use-app-colors';
 import { API } from '@/api';
 
 // ─── ICONS ───
@@ -161,6 +162,7 @@ async function updateUserProfile(
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const colors = useAppColors();
 
   const [isModalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -301,10 +303,10 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* ── Profile Header Card ── */}
-          <View style={styles.profileCard}>
+          <View style={[styles.profileCard, { backgroundColor: colors.cardBgAlt, shadowColor: colors.shadowColor }]}>
             <View style={styles.profileTop}>
               <View style={styles.avatarOuter}>
-                <View style={styles.avatarCircle}>
+                <View style={[styles.avatarCircle, { backgroundColor: colors.accentLight }]}>
                   <ThemedText style={styles.avatarLetter}>
                     {(formData.name || 'U').charAt(0).toUpperCase()}
                   </ThemedText>
@@ -313,11 +315,11 @@ export default function ProfileScreen() {
               </View>
 
               <View style={styles.profileInfo}>
-                <ThemedText style={styles.profileName}>{formData.name}</ThemedText>
+                <ThemedText style={[styles.profileName, { color: colors.textHeading }]}>{formData.name}</ThemedText>
                 {infoTags.length > 0 && (
                   <View style={styles.tagsRow}>
                     {infoTags.map((tag, i) => (
-                      <View key={i} style={styles.tag}>
+                      <View key={i} style={[styles.tag, { backgroundColor: colors.accentLight }]}>
                         <ThemedText style={styles.tagText}>{tag}</ThemedText>
                       </View>
                     ))}
@@ -327,7 +329,7 @@ export default function ProfileScreen() {
             </View>
 
             <TouchableOpacity
-              style={styles.editButton}
+              style={[styles.editButton, { backgroundColor: colors.accentLight, borderColor: colors.accentBorder }]}
               onPress={() => setModalVisible(true)}
               activeOpacity={0.7}
             >
@@ -337,30 +339,30 @@ export default function ProfileScreen() {
           </View>
 
           {/* ── Health Details Card ── */}
-          <View style={styles.detailsCard}>
-            <ThemedText style={styles.sectionTitle}>Health Details</ThemedText>
+          <View style={[styles.detailsCard, { backgroundColor: colors.cardBgAlt, shadowColor: colors.shadowColor }]}>
+            <ThemedText style={[styles.sectionTitle, { color: colors.textGray }]}>Health Details</ThemedText>
 
             <View style={styles.detailRow}>
               <View style={styles.detailIconWrap}>
                 <UserInfoIcon />
               </View>
               <View style={styles.detailContent}>
-                <ThemedText style={styles.detailLabel}>Clinical Story</ThemedText>
-                <ThemedText style={styles.detailValue}>
+                <ThemedText style={[styles.detailLabel, { color: colors.textGray }]}>Clinical Story</ThemedText>
+                <ThemedText style={[styles.detailValue, { color: colors.textPrimary }]}>
                   {formData.clinicalStory || '\u2014'}
                 </ThemedText>
               </View>
             </View>
 
-            <View style={styles.detailDivider} />
+            <View style={[styles.detailDivider, { backgroundColor: colors.border }]} />
 
             <View style={styles.detailRow}>
               <View style={styles.detailIconWrap}>
                 <NoteIcon />
               </View>
               <View style={styles.detailContent}>
-                <ThemedText style={styles.detailLabel}>Notes</ThemedText>
-                <ThemedText style={styles.detailValue}>
+                <ThemedText style={[styles.detailLabel, { color: colors.textGray }]}>Notes</ThemedText>
+                <ThemedText style={[styles.detailValue, { color: colors.textPrimary }]}>
                   {formData.notes
                     ? formData.notes.split('\n').join(' · ')
                     : '\u2014'}
@@ -370,45 +372,45 @@ export default function ProfileScreen() {
           </View>
 
           {/* ── Menu Card ── */}
-          <View style={styles.menuCard}>
+          <View style={[styles.menuCard, { backgroundColor: colors.cardBgAlt, shadowColor: colors.shadowColor }]}>
             <TouchableOpacity
-              style={styles.menuItem}
+              style={[styles.menuItem, { borderBottomColor: colors.border }]}
               activeOpacity={0.7}
               onPress={() => router.push('/settings')}
             >
-              <View style={styles.menuIconWrap}>
+              <View style={[styles.menuIconWrap, { backgroundColor: colors.accentLight }]}>
                 <SettingsIcon />
               </View>
-              <ThemedText style={styles.menuLabel}>Settings</ThemedText>
-              <Ionicons name="chevron-forward" size={18} color="rgba(67,79,77,0.3)" />
+              <ThemedText style={[styles.menuLabel, { color: colors.textPrimary }]}>Settings</ThemedText>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.menuItem}
+              style={[styles.menuItem, { borderBottomColor: colors.border }]}
               activeOpacity={0.7}
               onPress={() => router.push('/faq')}
             >
-              <View style={styles.menuIconWrap}>
+              <View style={[styles.menuIconWrap, { backgroundColor: colors.accentLight }]}>
                 <HelpIcon />
               </View>
-              <ThemedText style={styles.menuLabel}>Help & FAQ</ThemedText>
-              <Ionicons name="chevron-forward" size={18} color="rgba(67,79,77,0.3)" />
+              <ThemedText style={[styles.menuLabel, { color: colors.textPrimary }]}>Help & FAQ</ThemedText>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.menuItem, styles.menuItemLast]}
+              style={[styles.menuItem, styles.menuItemLast, { borderBottomColor: colors.border }]}
               onPress={handleLogout}
               activeOpacity={0.7}
             >
-              <View style={[styles.menuIconWrap, { backgroundColor: 'rgba(220,69,69,0.07)' }]}>
+              <View style={[styles.menuIconWrap, { backgroundColor: colors.destructiveBg }]}>
                 <LogOutIcon />
               </View>
               <ThemedText style={[styles.menuLabel, { color: '#DC4545' }]}>Log Out</ThemedText>
-              <Ionicons name="chevron-forward" size={18} color="rgba(67,79,77,0.3)" />
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
 
-          <ThemedText style={styles.versionText}>HRV-4</ThemedText>
+          <ThemedText style={[styles.versionText, { color: colors.textMuted }]}>HRV-4</ThemedText>
         </ScrollView>
       </SafeAreaView>
 
@@ -418,21 +420,21 @@ export default function ProfileScreen() {
           {/* Header Bar */}
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={() => setModalVisible(false)} hitSlop={8}>
-              <ThemedText style={styles.modalCancel}>Cancel</ThemedText>
+              <ThemedText style={[styles.modalCancel, { color: colors.accent }]}>Cancel</ThemedText>
             </TouchableOpacity>
-            <ThemedText style={styles.modalTitle}>Edit Profile</ThemedText>
+            <ThemedText style={[styles.modalTitle, { color: colors.textPrimary }]}>Edit Profile</ThemedText>
             <TouchableOpacity onPress={handleSaveProfile} hitSlop={8} disabled={isSaving}>
               {isSaving ? (
                 <ActivityIndicator size="small" color="#5CB89A" />
               ) : (
-                <ThemedText style={styles.modalSave}>Save</ThemedText>
+                <ThemedText style={[styles.modalSave, { color: colors.accent }]}>Save</ThemedText>
               )}
             </TouchableOpacity>
           </View>
 
           {/* Avatar Preview in Modal */}
           <View style={styles.modalAvatarSection}>
-            <View style={styles.modalAvatar}>
+            <View style={[styles.modalAvatar, { backgroundColor: colors.accentLight }]}>
               <ThemedText style={styles.modalAvatarLetter}>
                 {(formData.name || 'U').charAt(0).toUpperCase()}
               </ThemedText>
@@ -441,7 +443,7 @@ export default function ProfileScreen() {
 
           {/* Form */}
           <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-            <ThemedText style={styles.fieldLabel}>Name</ThemedText>
+            <ThemedText style={[styles.fieldLabel, { color: colors.textGray }]}>Name</ThemedText>
             <TextInput
               style={styles.input}
               value={formData.name}
@@ -450,7 +452,7 @@ export default function ProfileScreen() {
               placeholderTextColor="#A0ABA8"
             />
 
-            <ThemedText style={styles.fieldLabel}>Age</ThemedText>
+            <ThemedText style={[styles.fieldLabel, { color: colors.textGray }]}>Age</ThemedText>
             <TextInput
               style={styles.input}
               value={formData.age}
@@ -460,7 +462,7 @@ export default function ProfileScreen() {
               placeholderTextColor="#A0ABA8"
             />
 
-            <ThemedText style={styles.fieldLabel}>Gender</ThemedText>
+            <ThemedText style={[styles.fieldLabel, { color: colors.textGray }]}>Gender</ThemedText>
             <TextInput
               style={styles.input}
               value={formData.gender}
@@ -469,7 +471,7 @@ export default function ProfileScreen() {
               placeholderTextColor="#A0ABA8"
             />
 
-            <ThemedText style={styles.fieldLabel}>Clinical Story</ThemedText>
+            <ThemedText style={[styles.fieldLabel, { color: colors.textGray }]}>Clinical Story</ThemedText>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={formData.clinicalStory}
@@ -480,7 +482,7 @@ export default function ProfileScreen() {
               textAlignVertical="top"
             />
 
-            <ThemedText style={styles.fieldLabel}>Notes</ThemedText>
+            <ThemedText style={[styles.fieldLabel, { color: colors.textGray }]}>Notes</ThemedText>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={formData.notes}
@@ -506,7 +508,7 @@ const styles = StyleSheet.create({
 
   // ── Profile Header Card ──
   profileCard: {
-    backgroundColor: '#FAFAFA',
+    /*bg via inline*/
     borderRadius: 22,
     padding: 20,
     marginBottom: 14,
@@ -529,7 +531,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#D0EEEB',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2.5,
@@ -572,7 +573,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: 'rgba(92,184,154,0.1)',
+    backgroundColor: undefined,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -586,7 +587,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(92,184,154,0.09)',
+    backgroundColor: undefined,
     borderRadius: 14,
     paddingVertical: 12,
     borderWidth: 1,
@@ -601,7 +602,7 @@ const styles = StyleSheet.create({
 
   // ── Health Details Card ──
   detailsCard: {
-    backgroundColor: '#FAFAFA',
+    /*bg via inline*/
     borderRadius: 22,
     padding: 20,
     marginBottom: 14,
@@ -627,7 +628,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: 'rgba(92,184,154,0.1)',
+    backgroundColor: undefined,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -651,14 +652,13 @@ const styles = StyleSheet.create({
   },
   detailDivider: {
     height: 1,
-    backgroundColor: 'rgba(67,79,77,0.06)',
     marginVertical: 14,
     marginLeft: 44,
   },
 
   // ── Menu Card ──
   menuCard: {
-    backgroundColor: '#FAFAFA',
+    /*bg via inline*/
     borderRadius: 22,
     overflow: 'hidden',
     shadowColor: '#3D4E4A',
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 18,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(67,79,77,0.05)',
+    borderBottomColor: undefined,
   },
   menuItemLast: {
     borderBottomWidth: 0,
@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 13,
-    backgroundColor: 'rgba(208,238,235,0.35)',
+    backgroundColor: undefined,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -725,7 +725,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#D0EEEB',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,

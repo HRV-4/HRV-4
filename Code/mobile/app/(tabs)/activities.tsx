@@ -17,6 +17,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ScreenBackground } from '@/components/ui/ScreenBackground';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useAppColors } from '@/hooks/use-app-colors';
 import { API } from '@/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -25,13 +26,13 @@ const { width } = Dimensions.get('window');
 // ─── CONSTANTS & TYPES ───
 
 const ACTIVITY_CATEGORIES = [
-  { id: 'eat_drink', name: 'Eat/Drink', icon: 'restaurant-outline', color: '#E3C937' },
-  { id: 'sleep', name: 'Sleep', icon: 'moon-outline', color: '#7B9FE0' },
-  { id: 'personal_hygiene', name: 'Personal Hygiene', icon: 'water-outline', color: '#90E2DA' },
   { id: 'public_transportation', name: 'Public Transport', icon: 'bus-outline', color: '#7B9FE0' },
   { id: 'drive', name: 'Drive', icon: 'car-outline', color: '#A0ABA8' },
   { id: 'rest', name: 'Rest', icon: 'bed-outline', color: '#B8A9E0' },
+  { id: 'eat_drink', name: 'Eat/Drink', icon: 'restaurant-outline', color: '#E3C937' },
   { id: 'manual_work', name: 'Manual Work', icon: 'hammer-outline', color: '#FF8A5C' },
+  { id: 'sleep', name: 'Sleep', icon: 'moon-outline', color: '#7B9FE0' },
+  { id: 'personal_hygiene', name: 'Personal Hygiene', icon: 'water-outline', color: '#90E2DA' },
   { id: 'exercise', name: 'Exercise', icon: 'flame-outline', color: '#FF6B6B' },
   { id: 'communication', name: 'Communication', icon: 'chatbubble-outline', color: '#5CB89A' },
   { id: 'other', name: 'Other Activities', icon: 'ellipsis-horizontal-outline', color: '#A0ABA8' },
@@ -135,6 +136,11 @@ async function saveActivityToBackend(activity: Activity): Promise<boolean> {
       return false;
     }
 
+    // DEBUG — remove after fixing
+    console.log('DEBUG token (first 80 chars):', token.substring(0, 80));
+    console.log('DEBUG token starts with {?:', token.startsWith('{'));
+    console.log('DEBUG userId:', userId);
+
     const response = await fetch(API.activities(), {
       method: 'POST',
       headers: {
@@ -207,27 +213,28 @@ async function fetchActivitiesFromBackend(): Promise<Activity[] | null> {
 // ─── SUB-COMPONENTS ───
 
 function TodaySummaryCard({ activities }: { activities: Activity[] }) {
+  const colors = useAppColors();
   const today = activities.filter(a => a.date === new Date().toISOString().split('T')[0]);
   const totalMin = today.reduce((s, a) => s + a.durationMin, 0);
   const totalCal = today.reduce((s, a) => s + (a.calories || 0), 0);
 
   return (
-    <View style={styles.summaryCard}>
-      <ThemedText style={styles.cardTitle}>Today{'\u2019'}s Summary</ThemedText>
+    <View style={[styles.summaryCard, { backgroundColor: colors.cardBg, shadowColor: colors.shadowColor }]}>
+      <ThemedText style={[styles.cardTitle, { color: colors.textPrimary }]}>Today{'\u2019'}s Summary</ThemedText>
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
-          <ThemedText style={styles.summaryValue}>{today.length}</ThemedText>
-          <ThemedText style={styles.summaryLabel}>Activities</ThemedText>
+          <ThemedText style={[styles.summaryValue, { color: colors.textPrimary }]}>{today.length}</ThemedText>
+          <ThemedText style={[styles.summaryLabel, { color: colors.textTertiary }]}>Activities</ThemedText>
         </View>
-        <View style={styles.summaryDivider} />
+        <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
         <View style={styles.summaryItem}>
-          <ThemedText style={styles.summaryValue}>{formatDuration(totalMin)}</ThemedText>
-          <ThemedText style={styles.summaryLabel}>Total Time</ThemedText>
+          <ThemedText style={[styles.summaryValue, { color: colors.textPrimary }]}>{formatDuration(totalMin)}</ThemedText>
+          <ThemedText style={[styles.summaryLabel, { color: colors.textTertiary }]}>Total Time</ThemedText>
         </View>
-        <View style={styles.summaryDivider} />
+        <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
         <View style={styles.summaryItem}>
-          <ThemedText style={styles.summaryValue}>{totalCal}</ThemedText>
-          <ThemedText style={styles.summaryLabel}>Calories</ThemedText>
+          <ThemedText style={[styles.summaryValue, { color: colors.textPrimary }]}>{totalCal}</ThemedText>
+          <ThemedText style={[styles.summaryLabel, { color: colors.textTertiary }]}>Calories</ThemedText>
         </View>
       </View>
     </View>
@@ -235,15 +242,16 @@ function TodaySummaryCard({ activities }: { activities: Activity[] }) {
 }
 
 function ActivityItem({ activity }: { activity: Activity }) {
+  const colors = useAppColors();
   const cat = getCategoryInfo(activity.category);
   return (
-    <View style={styles.activityItem}>
+    <View style={[styles.activityItem, { backgroundColor: colors.innerCardBg }]}>
       <View style={[styles.activityIcon, { backgroundColor: `${cat.color}18` }]}>
         <Ionicons name={cat.icon as any} size={22} color={cat.color} />
       </View>
       <View style={styles.activityInfo}>
-        <ThemedText style={styles.activityType}>{activity.type}</ThemedText>
-        <ThemedText style={styles.activityMeta}>
+        <ThemedText style={[styles.activityType, { color: colors.textPrimary }]}>{activity.type}</ThemedText>
+        <ThemedText style={[styles.activityMeta, { color: colors.textTertiary }]}>
           {activity.time} · {formatDuration(activity.durationMin)}
           {activity.calories ? ` · ${activity.calories} cal` : ''}
         </ThemedText>
@@ -269,6 +277,7 @@ export default function ActivitiesScreen() {
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+   const colors = useAppColors();
   
   // Form State
   const [form, setForm] = useState({ 
@@ -403,22 +412,22 @@ export default function ActivitiesScreen() {
         <TodaySummaryCard activities={activities} />
 
         {/* Categories */}
-        <View style={styles.card}>
-          <ThemedText style={styles.cardTitle}>Categories</ThemedText>
+        <View style={[styles.card, { backgroundColor: colors.cardBg, shadowColor: colors.shadowColor }]}>
+          <ThemedText style={[styles.cardTitle, { color: colors.textPrimary }]}>Categories</ThemedText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow}>
             {ACTIVITY_CATEGORIES.map(cat => (
-              <View key={cat.id} style={styles.catChip}>
+              <View key={cat.id} style={[styles.catChip, { backgroundColor: colors.innerCardBg }]}>
                 <View style={[styles.catDot, { backgroundColor: cat.color }]} />
-                <ThemedText style={styles.catChipText}>{cat.name}</ThemedText>
+                <ThemedText style={[styles.catChipText, { color: colors.textPrimary }]}>{cat.name}</ThemedText>
               </View>
             ))}
           </ScrollView>
         </View>
 
         {/* Activity Log */}
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.cardBg, shadowColor: colors.shadowColor }]}>
           <View style={styles.listHeader}>
-            <ThemedText style={styles.cardTitle}>Activity Log</ThemedText>
+            <ThemedText style={[styles.cardTitle, { color: colors.textPrimary }]}>Activity Log</ThemedText>
             <View style={styles.listHeaderRight}>
               {isSaving && <ActivityIndicator size="small" color="#5CB89A" style={{ marginRight: 8 }} />}
               <TouchableOpacity onPress={() => setShowModal(true)}>
@@ -428,7 +437,7 @@ export default function ActivitiesScreen() {
           </View>
           {grouped.map(([date, items]) => (
             <View key={date} style={styles.dateGroup}>
-              <ThemedText style={styles.dateHeader}>{formatDate(date)}</ThemedText>
+              <ThemedText style={[styles.dateHeader, { color: colors.textTertiary }]}>{formatDate(date)}</ThemedText>
               {items.map(item => <ActivityItem key={item.id} activity={item} />)}
             </View>
           ))}
@@ -444,9 +453,9 @@ export default function ActivitiesScreen() {
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setShowModal(false)}>
-                <ThemedText style={styles.modalAction}>Cancel</ThemedText>
+                <ThemedText style={[styles.modalAction, { color: colors.accent }]}>Cancel</ThemedText>
               </TouchableOpacity>
-              <ThemedText style={styles.modalTitleText}>New Activity</ThemedText>
+              <ThemedText style={[styles.modalTitleText, { color: colors.textPrimary }]}>New Activity</ThemedText>
               <TouchableOpacity onPress={handleSave} disabled={isSaving}>
                 <ThemedText style={[styles.modalAction, { fontWeight: '600', opacity: isSaving ? 0.5 : 1 }]}>
                   {isSaving ? 'Saving...' : 'Save'}
@@ -458,7 +467,7 @@ export default function ActivitiesScreen() {
             <ScrollView style={{ flex: 1, padding: 20 }} showsVerticalScrollIndicator={false}>
               
               {/* Category Select */}
-              <ThemedText style={styles.fieldLabel}>Category</ThemedText>
+              <ThemedText style={[styles.fieldLabel, { color: colors.textTertiary }]}>Category</ThemedText>
               <View style={styles.catGrid}>
                 {ACTIVITY_CATEGORIES.map(cat => (
                   <TouchableOpacity
@@ -475,9 +484,9 @@ export default function ActivitiesScreen() {
               </View>
 
               {/* Name Input */}
-              <ThemedText style={styles.fieldLabel}>Activity Name</ThemedText>
+              <ThemedText style={[styles.fieldLabel, { color: colors.textTertiary }]}>Activity Name</ThemedText>
               <TextInput 
-                style={styles.mInput} 
+                style={[styles.mInput, { backgroundColor: colors.innerCardBg, color: colors.textPrimary }]} 
                 placeholder="e.g., Morning Run" 
                 placeholderTextColor="#A0ABA8" 
                 value={form.type} 
@@ -487,9 +496,9 @@ export default function ActivitiesScreen() {
               {/* Duration & Calories */}
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={styles.fieldLabel}>Duration (min)</ThemedText>
+                  <ThemedText style={[styles.fieldLabel, { color: colors.textTertiary }]}>Duration (min)</ThemedText>
                   <TextInput 
-                    style={styles.mInput} 
+                    style={[styles.mInput, { backgroundColor: colors.innerCardBg, color: colors.textPrimary }]} 
                     placeholder="30" 
                     placeholderTextColor="#A0ABA8" 
                     keyboardType="number-pad" 
@@ -498,9 +507,9 @@ export default function ActivitiesScreen() {
                   />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <ThemedText style={styles.fieldLabel}>Calories</ThemedText>
+                  <ThemedText style={[styles.fieldLabel, { color: colors.textTertiary }]}>Calories</ThemedText>
                   <TextInput 
-                    style={styles.mInput} 
+                    style={[styles.mInput, { backgroundColor: colors.innerCardBg, color: colors.textPrimary }]} 
                     placeholder="0" 
                     placeholderTextColor="#A0ABA8" 
                     keyboardType="number-pad" 
@@ -511,9 +520,9 @@ export default function ActivitiesScreen() {
               </View>
 
               {/* Notes */}
-              <ThemedText style={styles.fieldLabel}>Notes</ThemedText>
+              <ThemedText style={[styles.fieldLabel, { color: colors.textTertiary }]}>Notes</ThemedText>
               <TextInput 
-                style={[styles.mInput, { minHeight: 90, textAlignVertical: 'top' }]} 
+                style={[styles.mInput, { minHeight: 90, textAlignVertical: 'top', backgroundColor: colors.innerCardBg, color: colors.textPrimary }]} 
                 placeholder="How did it go?" 
                 placeholderTextColor="#A0ABA8" 
                 multiline 
@@ -548,7 +557,7 @@ const styles = StyleSheet.create({
   loadingText: { fontSize: 13, color: 'rgba(67,79,77,0.55)' },
 
   summaryCard: {
-    backgroundColor: '#FCFCFC', borderRadius: 20, padding: 18, marginBottom: 16,
+    borderRadius: 20, padding: 18, marginBottom: 16,
     shadowColor: '#3D4E4A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
   },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#434F4D', marginBottom: 12 },
@@ -556,14 +565,14 @@ const styles = StyleSheet.create({
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryValue: { fontSize: 20, fontWeight: '700', color: '#434F4D' },
   summaryLabel: { fontSize: 12, fontWeight: '600', color: 'rgba(67,79,77,0.55)', marginTop: 4 },
-  summaryDivider: { width: 1, height: 36, backgroundColor: 'rgba(67,79,77,0.1)' },
+  summaryDivider: { width: 1, height: 36, backgroundColor: undefined },
 
   card: {
-    backgroundColor: '#FCFCFC', borderRadius: 20, padding: 18, marginBottom: 16,
+    borderRadius: 20, padding: 18, marginBottom: 16,
     shadowColor: '#3D4E4A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
   catRow: { gap: 10 },
-  catChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F2F2F2', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8, gap: 8 },
+  catChip: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8, gap: 8 },
   catDot: { width: 10, height: 10, borderRadius: 5 },
   catChipText: { fontSize: 13, fontWeight: '600', color: '#434F4D' },
 
@@ -571,7 +580,7 @@ const styles = StyleSheet.create({
   listHeaderRight: { flexDirection: 'row', alignItems: 'center' },
   dateGroup: { marginBottom: 14 },
   dateHeader: { fontSize: 14, fontWeight: '600', color: 'rgba(67,79,77,0.55)', marginBottom: 10, marginTop: 4 },
-  activityItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F8F8', borderRadius: 14, padding: 14, marginBottom: 8, gap: 12 },
+  activityItem: { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, marginBottom: 8, gap: 12 },
   activityIcon: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   activityInfo: { flex: 1 },
   activityType: { fontSize: 15, fontWeight: '600', color: '#434F4D' },
@@ -588,5 +597,5 @@ const styles = StyleSheet.create({
   catOption: { width: (width - 80) / 3, padding: 10, borderRadius: 16, alignItems: 'center', backgroundColor: '#F2F2F2', borderWidth: 1, borderColor: 'transparent' },
   catIconBox: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 4 },
   catName: { fontSize: 11, fontWeight: '600', color: '#434F4D', textAlign: 'center' },
-  mInput: { backgroundColor: '#F2F2F2', borderRadius: 14, paddingHorizontal: 16, paddingVertical: Platform.OS === 'ios' ? 14 : 12, fontSize: 16, color: '#434F4D' },
+  mInput: { backgroundColor: undefined, borderRadius: 14, paddingHorizontal: 16, paddingVertical: Platform.OS === 'ios' ? 14 : 12, fontSize: 16, color: '#434F4D' },
 });

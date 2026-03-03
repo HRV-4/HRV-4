@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
 
 type CustomHeaderProps = {
     title: string;
@@ -13,51 +13,45 @@ type CustomHeaderProps = {
 export default function CustomHeader({ title }: CustomHeaderProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const colors = useAppColors();
 
-    // Check if we are on a "Stack" page
     const isModalPage = pathname === '/profile' || pathname === '/faq';
 
     return (
-        <ThemedView style={styles.headerContainer}>
+        <ThemedView style={[styles.headerContainer, { borderBottomColor: colors.border }]}>
             <SafeAreaView edges={['top']} style={styles.safeArea}>
                 <View style={styles.headerContent}>
 
-                    {/* 1. CENTER TITLE (Only for Profile/FAQ) */}
-                    {/* We use absolute positioning to ensure it is perfectly centered */}
                     {isModalPage && (
                         <View style={styles.centeredTitleOverlay}>
-                            <ThemedText type="subtitle" style={styles.headerTitle}>{title}</ThemedText>
+                            <ThemedText type="subtitle" style={[styles.headerTitle, { color: colors.textPrimary }]}>{title}</ThemedText>
                         </View>
                     )}
 
-                    {/* 2. LEFT SIDE */}
                     <View style={styles.leftContainer}>
                         {isModalPage ? (
-                            // STACK MODE: Arrow + "Back" Text
                             <TouchableOpacity
                                 onPress={() => router.back()}
                                 style={styles.backButton}
                             >
-                                <Ionicons name="chevron-back" size={28} color={Colors.light.tint} />
-                                <ThemedText style={styles.backText}>Back</ThemedText>
+                                <Ionicons name="chevron-back" size={28} color={colors.accent} />
+                                <ThemedText style={[styles.backText, { color: colors.accent }]}>Back</ThemedText>
                             </TouchableOpacity>
                         ) : (
-                            // DASHBOARD MODE: Title + Subtitle on the left
                             <View>
-                                <ThemedText type="subtitle" style={styles.headerTitle}>{title}</ThemedText>
+                                <ThemedText type="subtitle" style={[styles.headerTitle, { color: colors.textPrimary }]}>{title}</ThemedText>
                             </View>
                         )}
                     </View>
 
-                    {/* 3. RIGHT SIDE (Icons only for Dashboard/Main tabs) */}
                     <View style={styles.rightContainer}>
                         {!isModalPage && (
                             <View style={styles.iconRow}>
                                 <TouchableOpacity onPress={() => router.push('/faq')} style={styles.iconButton}>
-                                    <Ionicons name="help-circle-outline" size={26} color={Colors.light.tint} />
+                                    <Ionicons name="help-circle-outline" size={26} color={colors.accent} />
                                 </TouchableOpacity>
                                 <TouchableOpacity onPress={() => router.push('/profile')}>
-                                    <Ionicons name="person-circle" size={36} color="#C7C7CC" />
+                                    <Ionicons name="person-circle" size={36} color={colors.textMuted} />
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -71,9 +65,7 @@ export default function CustomHeader({ title }: CustomHeaderProps) {
 
 const styles = StyleSheet.create({
     headerContainer: {
-        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#F2F2F7',
     },
     safeArea: {
         paddingBottom: 12,
@@ -86,7 +78,6 @@ const styles = StyleSheet.create({
         paddingTop: 8,
         minHeight: 44,
     },
-    // Absolute positioning for the centered title
     centeredTitleOverlay: {
         position: 'absolute',
         left: 0,
@@ -95,7 +86,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: -1, // Ensures it doesn't block clicks on buttons
+        zIndex: -1,
     },
     leftContainer: {
         justifyContent: 'center',
@@ -110,15 +101,14 @@ const styles = StyleSheet.create({
     backButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginLeft: -8, // Pulls the arrow slightly to the edge
+        marginLeft: -8,
     },
     backText: {
-        color: Colors.light.tint, // Blue color
         fontSize: 17,
-        marginLeft: -2, // Pulls text closer to arrow
+        marginLeft: -2,
     },
     headerTitle: {
-        fontSize: 18, // Slightly smaller to fit "Back" button nicely
+        fontSize: 18,
         fontWeight: '600',
     },
     iconRow: {

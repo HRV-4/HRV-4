@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, View, TouchableOpacity, Dimensions, Text, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,6 +9,9 @@ import { SleepIcon } from '@/components/ui/SleepIcon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { PageHeader } from '@/components/ui/PageHeader';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API } from '@/api';
+import { useAppColors } from '@/hooks/use-app-colors';
 
 // --- RESPONSIVE SCALING ---
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -29,28 +32,13 @@ function HeartRateIcon({ color = "#434F4D" }) {
 function BrainIcon({ color = "#434F4D" }) {
     return (
         <Svg width={scale(12)} height={scale(11)} viewBox="0 0 12 11" fill="none">
-            {/* Top Left Detail */}
             <Path d="M4.791 7.80637C4.791 7.42773 4.62695 7.06459 4.33491 6.79681C4.04288 6.52903 3.64678 6.37853 3.23371 6.37842C3.20832 6.37842 3.1858 6.38413 3.1604 6.38545" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
-
-            {/* Left Hemisphere Main */}
             <Path d="M4.62905 2.1567C4.79624 2.10503 4.94462 2.01205 5.05784 1.88801C5.17106 1.76397 5.24473 1.61369 5.27073 1.45372C5.29673 1.29376 5.27405 1.13032 5.20519 0.981412C5.13633 0.832508 5.02396 0.703919 4.88046 0.609815C4.73697 0.515712 4.56792 0.459747 4.39195 0.448087C4.21597 0.436427 4.0399 0.469525 3.88314 0.543734C3.72637 0.617943 3.595 0.730382 3.50349 0.868661C3.41198 1.00694 3.3639 1.16569 3.36453 1.32742C3.36584 1.40685 3.3789 1.48576 3.40334 1.56197C3.35016 1.55802 3.29889 1.54704 3.24474 1.54704C2.90921 1.54547 2.57998 1.63047 2.29466 1.79231C2.00934 1.95415 1.77944 2.1863 1.63125 2.46226C1.48306 2.7382 1.42255 3.0468 1.45664 3.35278C1.49072 3.65875 1.61803 3.94977 1.82401 4.19256C1.46179 4.21451 1.12222 4.36188 0.874144 4.60482C0.626066 4.84775 0.488037 5.16806 0.488037 5.50082C0.488037 5.83358 0.626066 6.1539 0.874144 6.39683C1.12222 6.63976 1.46179 6.78714 1.82401 6.80909C1.61826 7.05184 1.49115 7.34275 1.45719 7.64858C1.42323 7.95441 1.4838 8.26283 1.63198 8.53861C1.78015 8.81438 2.00996 9.04639 2.29514 9.20813C2.58032 9.36988 2.90939 9.45483 3.24474 9.45329C3.29889 9.45329 3.35016 9.44319 3.40334 9.43879C3.3523 9.60431 3.35539 9.77991 3.41222 9.94383C3.46905 10.1077 3.57712 10.2528 3.72303 10.3609C3.86894 10.469 4.04627 10.5355 4.23303 10.5521C4.41979 10.5687 4.60775 10.5347 4.77361 10.4543C4.93947 10.3739 5.07593 10.2506 5.16606 10.0997C5.25619 9.94889 5.29603 9.77711 5.28064 9.60569C5.26525 9.43427 5.1953 9.27077 5.07947 9.13546C4.96364 9.00015 4.80703 8.89898 4.62905 8.84451" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
-
-            {/* Left Inner Line */}
             <Path d="M3.1604 4.61526C3.18532 4.61526 3.20832 4.62185 3.23371 4.62185C3.64669 4.62174 4.04272 4.4713 4.33474 4.20361C4.62677 3.93593 4.79088 3.5729 4.791 3.19434" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
-
-            {/* Top Right Detail */}
             <Path d="M7.20898 7.80637C7.20898 7.42773 7.37304 7.06459 7.66508 6.79681C7.95711 6.52903 8.35321 6.37853 8.76628 6.37842C8.79167 6.37842 8.81419 6.38413 8.83959 6.38545" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
-
-            {/* Right Hemisphere Main */}
             <Path d="M7.37089 2.1567C7.2037 2.10503 7.05532 2.01205 6.9421 1.88801C6.82888 1.76397 6.75521 1.61369 6.72921 1.45372C6.70321 1.29376 6.72589 1.13032 6.79475 0.981412C6.86361 0.832508 6.97598 0.703919 7.11947 0.609815C7.26297 0.515712 7.43201 0.459747 7.60799 0.448087C7.78396 0.436427 7.96004 0.469525 8.1168 0.543734C8.27357 0.617943 8.40494 0.730382 8.49645 0.868661C8.58795 1.00694 8.63604 1.16569 8.63541 1.32742C8.6341 1.40685 8.62104 1.48576 8.59659 1.56197C8.64978 1.55758 8.70105 1.54704 8.7552 1.54704C9.09064 1.54554 9.41978 1.63055 9.70502 1.79238C9.99025 1.9542 10.2201 2.1863 10.3683 2.46216C10.5164 2.73803 10.577 3.04654 10.543 3.35245C10.509 3.65835 10.3818 3.94932 10.1759 4.19212C10.5381 4.21407 10.8777 4.36145 11.1258 4.60438C11.3739 4.84731 11.5119 5.16762 11.5119 5.50038C11.5119 5.83314 11.3739 6.15346 11.1258 6.39639C10.8777 6.63932 10.5381 6.7867 10.1759 6.80865C10.3818 7.0514 10.509 7.34235 10.5431 7.64825C10.5771 7.95415 10.5166 8.26266 10.3684 8.53851C10.2202 8.81436 9.99033 9.04643 9.70506 9.2082C9.41979 9.36996 9.09063 9.4549 8.7552 9.45329C8.70105 9.45329 8.64978 9.44319 8.59659 9.43879C8.64763 9.60431 8.64455 9.77991 8.58772 9.94383C8.53089 10.1077 8.42282 10.2528 8.27691 10.3609C8.13099 10.469 7.95366 10.5355 7.76691 10.5521C7.58015 10.5687 7.39219 10.5347 7.22633 10.4543C7.06047 10.3739 6.92401 10.2506 6.83387 10.0997C6.74374 9.94889 6.7039 9.77711 6.7193 9.60569C6.73469 9.43427 6.80464 9.27077 6.92047 9.13546C7.0363 9.00015 7.19291 8.89898 7.37089 8.84451" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
-
-            {/* Right Inner Line */}
             <Path d="M8.83959 4.61526C8.81467 4.61526 8.79167 4.62185 8.76628 4.62185C8.3533 4.62174 7.95727 4.4713 7.66524 4.20361C7.37322 3.93593 7.20911 3.5729 7.20898 3.19434" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
-
-            {/* Center Top Curve */}
             <Path d="M5.28125 0.283473C5.49978 0.16782 5.74767 0.106934 6 0.106934C6.25233 0.106934 6.50022 0.16782 6.71875 0.283473" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
-
-            {/* Center Vertical Line */}
             <Path d="M6 3.3042V7.91618" stroke={color} strokeLinecap="round" strokeLinejoin="round"/>
         </Svg>
     );
@@ -77,11 +65,9 @@ function LightningIcon({ color = "#434F4D" }) {
     );
 }
 
-// --- NEW ARROW ICON (Scaled) ---
 function TrendArrowIcon({ opacity = 1 }: { opacity?: number }) {
     return (
-        // Applied opacity directly to the Svg container style
-        <Svg width={scale(51)} height={scale(30)} viewBox="0 0 51 30" fill="none" style={{ opacity }}>
+        <Svg width={scale(38)} height={scale(22)} viewBox="0 0 51 30" fill="none" style={{ opacity }}>
             <Path d="M33.8572 3H47.5715V16.7143" stroke="#F3F3F3" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
             <Path d="M47.5714 3L28.2 22.3714C27.8796 22.6855 27.4487 22.8615 27 22.8615C26.5513 22.8615 26.1205 22.6855 25.8 22.3714L17.9143 14.4857C17.5938 14.1716 17.163 13.9957 16.7143 13.9957C16.2656 13.9957 15.8347 14.1716 15.5143 14.4857L3 27" stroke="#F3F3F3" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
         </Svg>
@@ -110,7 +96,6 @@ function HeartRateGraph() {
     );
 }
 
-// ... SleepHeatmap & BioGraph remain unchanged ...
 function SleepHeatmap() {
     const gridData = [
         ['#D9D9D9', '#B0AAFF', '#9188FF', '#6255FF', '#2E1DFF', '#B0AAFF'],
@@ -166,32 +151,32 @@ function BioGraph({ percentage = 40 }: { percentage: number }) {
     );
 }
 
-// --- NEW REUSABLE COMPONENTS FOR WIDGETS ---
+// --- REUSABLE WIDGET ---
 
 interface WidgetProps {
     title: string;
-    height?: number; // Optional height, defaults to Insights height if not set
-    onPress?: () => void; // Added onPress
+    height?: number;
+    onPress?: () => void;
     children?: React.ReactNode;
 }
 
 function DashboardWidget({ title, height, onPress, children }: WidgetProps) {
-    // If onPress is provided, wrap in TouchableOpacity, otherwise View
+    const colors = useAppColors();
     const Container = onPress ? TouchableOpacity : View;
-
     return (
         <Container
-            style={[styles.widgetContainer, height ? { height } : {}]}
+            style={[styles.widgetContainer, { backgroundColor: colors.widgetBg, shadowColor: colors.shadowColor }, height ? { height } : {}]}
             onPress={onPress}
             activeOpacity={onPress ? 0.7 : 1}
         >
-            <Text style={styles.widgetTitle}>{title}</Text>
+            <Text style={[styles.widgetTitle, { color: colors.textPrimary }]}>{title}</Text>
             {children}
         </Container>
     );
 }
 
-// --- ACTIVITY CARD COMPONENT ---
+// --- ACTIVITY CARD ---
+
 interface ActivityCardProps {
     title: string;
     time: string;
@@ -200,24 +185,18 @@ interface ActivityCardProps {
 }
 
 function ActivityCard({ title, time, duration, iconColor = "#EEE" }: ActivityCardProps) {
+    const colors = useAppColors();
     return (
-        <View style={styles.activityCard}>
-            {/* Left Column: Text Stack */}
+        <View style={[styles.activityCard, { backgroundColor: colors.innerCardBg }]}>
             <View style={styles.activityTextCol}>
-                <Text
-                    style={styles.activityTitle}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                >
+                <Text style={[styles.activityTitle, { color: colors.textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
                     {title}
                 </Text>
                 <View>
-                    <Text style={styles.activityTime} numberOfLines={1}>{time}</Text>
-                    <Text style={styles.activityDuration} numberOfLines={1}>{duration}</Text>
+                    <Text style={[styles.activityTime, { color: colors.textTertiary }]} numberOfLines={1}>{time}</Text>
+                    <Text style={[styles.activityDuration, { color: colors.textPrimary }]} numberOfLines={1}>{duration}</Text>
                 </View>
             </View>
-
-            {/* Right Column: Icon Placeholder */}
             <View style={styles.activityIconCol}>
                 <View style={[styles.activityIconPlaceholder, { backgroundColor: iconColor }]} />
             </View>
@@ -226,33 +205,80 @@ function ActivityCard({ title, time, duration, iconColor = "#EEE" }: ActivityCar
 }
 
 function AddActivityButton() {
+    const colors = useAppColors();
     return (
-        <View style={styles.addActivityBtn}>
-            <Svg width={scale(9)} height={scale(9)} viewBox="0 0 9 9" fill="none">
+        <View style={[styles.addActivityBtn, { backgroundColor: colors.innerCardBg }]}>
+            <Svg width={scale(11)} height={scale(11)} viewBox="0 0 9 9" fill="none">
                 <Path d="M4.5 0V9M0 4.5H9" stroke="rgba(106, 116, 114, 0.54)" strokeWidth="2.0" strokeLinecap="round"/>
             </Svg>
         </View>
     );
 }
 
-// --- NEW HEALTH TIP CARD ---
+// --- HEALTH TIP CARD ---
+
 interface HealthTipCardProps {
     title: string;
     body: string;
 }
 
 function HealthTipCard({ title, body }: HealthTipCardProps) {
+    const colors = useAppColors();
     return (
-        <View style={styles.healthTipCard}>
-            <Text style={styles.healthTipTitle}>{title}</Text>
-            <Text style={styles.healthTipBody}>{body}</Text>
+        <View style={[styles.healthTipCard, { backgroundColor: colors.innerCardBg }]}>
+            <Text style={[styles.healthTipTitle, { color: colors.textPrimary }]}>{title}</Text>
+            <Text style={[styles.healthTipBody, { color: colors.textSecondary }]} numberOfLines={3}>{body}</Text>
         </View>
     );
 }
 
+// --- MAIN SCREEN ---
+
 export default function DashboardScreen() {
     const router = useRouter();
+    const colors = useAppColors();
     const bioPercentage = 40;
+
+    const [userName, setUserName] = useState('');
+
+    // ─── Fetch username on mount ───
+    useEffect(() => {
+        loadUserName();
+    }, []);
+
+    const loadUserName = async () => {
+        try {
+            const token = await AsyncStorage.getItem('accessToken');
+            const userId = await AsyncStorage.getItem('userId');
+
+            if (!token || !userId) {
+                setUserName('User');
+                return;
+            }
+
+            const response = await fetch(API.userById(userId), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const profile = await response.json();
+                const name = profile.name || profile.email?.split('@')[0] || 'User';
+                setUserName(name);
+            } else {
+                // Fallback: try email from stored data
+                setUserName('User');
+            }
+        } catch (error) {
+            console.warn('Could not load username:', error);
+            setUserName('User');
+        }
+    };
+
+    const greeting = userName ? `Hello ${userName},` : 'Hello,';
 
     return (
         <ScreenBackground style={styles.container}>
@@ -262,45 +288,44 @@ export default function DashboardScreen() {
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* --- REUSABLE HEADER (Dashboard Variant) --- */}
-                    <PageHeader title="Hello Buse," variant="dashboard" />
+                    {/* --- HEADER WITH DYNAMIC USERNAME --- */}
+                    <PageHeader title={greeting} variant="dashboard" />
 
                     <TouchableOpacity
-                        style={styles.bigWidget}
+                        style={[styles.bigWidget, { backgroundColor: colors.widgetBg, shadowColor: colors.shadowColor }]}
                         onPress={() => router.push('/graphs')}
-                        activeOpacity={0.9} // Subtle press effect for large cards
+                        activeOpacity={0.9}
                     >
-
                         {/* TOP ROW */}
                         <View style={styles.bigWidgetTopRow}>
-                            <View style={styles.innerCard}>
+                            <View style={[styles.innerCard, { backgroundColor: colors.innerCardBg }]}>
                                 <View style={styles.cardHeader}>
                                     <View style={{ transform: [{ scale: scale(1) }] }}>
                                         <BioIcon />
                                     </View>
-                                    <Text style={styles.cardTitle}>Biological Age</Text>
+                                    <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Biological Age</Text>
                                 </View>
                                 <View style={styles.bioContent}>
                                     <View style={styles.bioTextContainer}>
                                         <Text style={styles.bioValue}>30</Text>
-                                        <Text style={styles.bioUnit}>years</Text>
+                                        <Text style={[styles.bioUnit, { color: colors.textPrimary }]}>years</Text>
                                     </View>
                                     <BioGraph percentage={bioPercentage} />
                                 </View>
                             </View>
 
-                            <View style={styles.innerCard}>
+                            <View style={[styles.innerCard, { backgroundColor: colors.innerCardBg }]}>
                                 <View style={styles.cardHeader}>
                                     <View style={{ transform: [{ scale: scale(1) }] }}>
                                         <SleepIcon />
                                     </View>
-                                    <Text style={styles.cardTitle}>Sleep</Text>
+                                    <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Sleep</Text>
                                 </View>
                                 <SleepHeatmap />
                                 <View style={styles.sleepFooter}>
                                     <View style={{flexDirection: 'row', alignItems: 'baseline'}}>
                                         <Text style={styles.sleepValue}>7.20</Text>
-                                        <Text style={styles.sleepUnit}>hr</Text>
+                                        <Text style={[styles.sleepUnit, { color: colors.textMuted }]}>hr</Text>
                                     </View>
                                     <Text style={styles.sleepQuality}>%89</Text>
                                 </View>
@@ -309,166 +334,141 @@ export default function DashboardScreen() {
 
                         {/* BOTTOM ROW */}
                         <View style={styles.bigWidgetBottomRow}>
-
-                            {/* 1. Avg Heart Rate */}
-                            <View style={styles.statCard}>
+                            <View style={[styles.statCard, { backgroundColor: colors.statCardBg }]}>
                                 <View style={styles.statHeader}>
                                     <HeartRateIcon />
-                                    <Text style={styles.statTitle}>Avg.{'\n'}Heart Rate</Text>
+                                    <Text style={[styles.statTitle, { color: colors.textPrimary }]}>Avg.{'\n'}Heart Rate</Text>
                                 </View>
-
                                 <View style={styles.hrGraphPosition}>
                                     <HeartRateGraph />
                                 </View>
-
-                                {/* UPDATED: Positioned absolute bottom-right */}
                                 <View style={styles.hrValueContainer}>
-                                    <Text style={styles.msLabel}>ms</Text>
-                                    <Text style={styles.hrValue}>99</Text>
+                                    <Text style={[styles.msLabel, { color: colors.textTertiary }]}>ms</Text>
+                                    <Text style={[styles.hrValue, { color: colors.textPrimary }]}>99</Text>
                                 </View>
                             </View>
 
-                            {/* 2. Burnout Res. */}
-                            <View style={styles.statCard}>
+                            <View style={[styles.statCard, { backgroundColor: colors.statCardBg }]}>
                                 <View style={styles.statHeader}>
                                     <BrainIcon />
-                                    <Text style={styles.statTitle}>Burnout{'\n'}Res.</Text>
+                                    <Text style={[styles.statTitle, { color: colors.textPrimary }]}>Burnout{'\n'}Res.</Text>
                                 </View>
                                 <View style={styles.statContent}>
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={styles.statValue}>8.2</Text>
-                                        <Text style={styles.statValueUnit}>/10</Text>
+                                        <Text style={[styles.statValue, { color: colors.textPrimary }]}>8.2</Text>
+                                        <Text style={[styles.statValueUnit, { color: colors.textTertiary }]}>/10</Text>
                                     </View>
                                 </View>
                             </View>
 
-                            {/* 3. Per. Potential */}
-                            <View style={styles.statCard}>
+                            <View style={[styles.statCard, { backgroundColor: colors.statCardBg }]}>
                                 <View style={styles.statHeader}>
                                     <PersonIcon />
-                                    <Text style={styles.statTitle}>Per.{'\n'}Potential</Text>
+                                    <Text style={[styles.statTitle, { color: colors.textPrimary }]}>Per.{'\n'}Potential</Text>
                                 </View>
                                 <View style={styles.statContent}>
-                                    <Text style={styles.statValue}>%94</Text>
+                                    <Text style={[styles.statValue, { color: colors.textPrimary }]}>%94</Text>
                                 </View>
                             </View>
 
-                            {/* 4. Regen Score */}
-                            <View style={styles.statCard}>
+                            <View style={[styles.statCard, { backgroundColor: colors.statCardBg }]}>
                                 <View style={styles.statHeader}>
                                     <LightningIcon />
-                                    <Text style={styles.statTitle}>Regen.{'\n'}Score</Text>
+                                    <Text style={[styles.statTitle, { color: colors.textPrimary }]}>Regen.{'\n'}Score</Text>
                                 </View>
                                 <View style={styles.statContent}>
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={styles.statValue}>7.5</Text>
-                                        <Text style={styles.statValueUnit}>/10</Text>
+                                        <Text style={[styles.statValue, { color: colors.textPrimary }]}>7.5</Text>
+                                        <Text style={[styles.statValueUnit, { color: colors.textTertiary }]}>/10</Text>
                                     </View>
                                 </View>
                             </View>
-
                         </View>
-
                     </TouchableOpacity>
 
-                    {/* --- NEW WIDGETS SECTION --- */}
-                    <View style={{ gap: scale(10), marginTop: scale(10) }}>
+                    {/* --- WIDGETS SECTION (BIGGER + MORE PROFESSIONAL) --- */}
+                    <View style={{ gap: scale(12), marginTop: scale(12) }}>
 
                         {/* 1. Insights Widget */}
                         <DashboardWidget title="Insights" onPress={() => router.push('/insights')}>
                             <View style={styles.insightsRow}>
-
-                                {/* Recovery Improving Card */}
                                 <LinearGradient
-                                    colors={['#F2F2F2', '#BDE3C6']}
-                                    locations={[0.60, 1.0]}
+                                    colors={colors.insightGradientGreen}
+                                    locations={[0.50, 1.0]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 0 }}
                                     style={styles.insightCard}
                                 >
                                     <View style={styles.insightArrow}>
-                                        {/* UPDATED OPACITY: Darker than before, but still inactive */}
                                         <TrendArrowIcon opacity={1.0} />
                                     </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.insightCardTitle}>Recovery Improving</Text>
-                                        <Text style={styles.insightCardBody}>
-                                            Your HRV has increased by 11.5 % compared to your baseline.
+                                    <View style={styles.insightTextWrap}>
+                                        <Text style={[styles.insightCardTitle, { color: colors.textPrimary }]}>Recovery Improving</Text>
+                                        <Text style={[styles.insightCardBody, { color: colors.textSecondary }]}>
+                                            Your HRV has increased by 11.5% compared to your baseline.
                                         </Text>
                                     </View>
-
                                 </LinearGradient>
 
-                                {/* Sleep Quality Impact */}
                                 <LinearGradient
-                                    colors={['#F2F2F2', '#EBD6FF']}
-                                    locations={[0.60, 1.0]}
+                                    colors={colors.insightGradientPurple}
+                                    locations={[0.50, 1.0]}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 0 }}
                                     style={styles.insightCard}
                                 >
                                     <View style={styles.insightArrow}>
-                                        {/* UPDATED OPACITY: Softens the solid #F3F3F3 */}
                                         <TrendArrowIcon opacity={1.0} />
                                     </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.insightCardTitle}>Sleep Quality Impact</Text>
-                                        <Text style={styles.insightCardBody}>
+                                    <View style={styles.insightTextWrap}>
+                                        <Text style={[styles.insightCardTitle, { color: colors.textPrimary }]}>Sleep Quality Impact</Text>
+                                        <Text style={[styles.insightCardBody, { color: colors.textSecondary }]}>
                                             Your HRV is highest after nights with 7+ hours of sleep.
                                         </Text>
                                     </View>
-
                                 </LinearGradient>
-
                             </View>
                         </DashboardWidget>
 
                         {/* 2. Activities Widget */}
                         <DashboardWidget title="Activities" onPress={() => router.push('/activities')}>
                             <View style={styles.activitiesRow}>
-                                {/* Activity 1: Morning Run */}
                                 <ActivityCard
                                     title="Morning Run"
                                     time="8:30 AM"
                                     duration="32 min"
-                                    iconColor="#FDE68A" // Yellow placeholder
+                                    iconColor="#FDE68A"
                                 />
-
-                                {/* Activity 2: Meditation */}
                                 <ActivityCard
                                     title="Meditation"
                                     time="12:00 PM"
                                     duration="15 min"
-                                    iconColor="#BAE6FD" // Blue placeholder
+                                    iconColor="#BAE6FD"
                                 />
-
-                                {/* Activity 3: Sleep */}
                                 <ActivityCard
                                     title="Sleep"
                                     time="10:30 PM"
                                     duration="7h 20m"
-                                    iconColor="#E9D5FF" // Purple placeholder
+                                    iconColor="#E9D5FF"
                                 />
-
-                                {/* Add Button */}
                                 <AddActivityButton />
                             </View>
                         </DashboardWidget>
 
-                        {/* 3. HEALTH TIPS WIDGET */}
+                        {/* 3. Health Tips Widget */}
                         <DashboardWidget title="Health Tips" onPress={() => router.push('/insights')}>
                             <View style={styles.activitiesRow}>
                                 <HealthTipCard
                                     title="Prioritize Rest"
-                                    body="Your body needs recovery time"
+                                    body="Your body needs recovery time after intense activity."
                                 />
                                 <HealthTipCard
                                     title="Stay Hydrated"
-                                    body="Aim for 3 liters today"
+                                    body="Aim for at least 3 liters of water today."
                                 />
                                 <HealthTipCard
                                     title="Avoid Screens"
-                                    body="Screen-free 3 hours"
+                                    body="Go screen-free 1 hour before bed."
                                 />
                             </View>
                         </DashboardWidget>
@@ -480,6 +480,8 @@ export default function DashboardScreen() {
         </ScreenBackground>
     );
 }
+
+// --- STYLES ---
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -509,13 +511,12 @@ const styles = StyleSheet.create({
         fontVariant: ['no-common-ligatures'],
     },
 
+    // --- BIG WIDGET ---
     bigWidget: {
         width: '100%',
         height: scale(297),
-        backgroundColor: '#FDFDFD',
         borderRadius: scale(20),
         alignSelf: 'center',
-        shadowColor: 'rgb(61, 78, 74)',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.25,
         shadowRadius: scale(13),
@@ -523,18 +524,15 @@ const styles = StyleSheet.create({
         padding: scale(13),
         justifyContent: 'space-between'
     },
-
     bigWidgetTopRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         gap: scale(13),
         height: scale(173),
     },
-
     innerCard: {
         flex: 1,
         height: '100%',
-        backgroundColor: '#F2F2F2',
         borderRadius: scale(11),
         padding: scale(12),
         justifyContent: 'space-between'
@@ -578,7 +576,6 @@ const styles = StyleSheet.create({
         marginTop: scale(2),
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-
     graphTextContainer: {
         position: 'absolute',
         alignItems: 'center',
@@ -630,7 +627,6 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-
     sleepFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -658,29 +654,25 @@ const styles = StyleSheet.create({
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
 
-    // --- BOTTOM ROW STYLES ---
+    // --- BOTTOM ROW ---
     bigWidgetBottomRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         gap: scale(9),
         height: scale(86),
     },
-
     statCard: {
         flex: 1,
-        backgroundColor: '#F2F2F2',
         borderRadius: scale(12),
-        // REDUCED PADDING to fit the 75px graph
         paddingHorizontal: scale(2),
         paddingVertical: scale(8),
         justifyContent: 'space-between',
     },
-
     statHeader: {
         flexDirection: 'row',
         alignItems: 'flex-start',
         gap: scale(4),
-        paddingHorizontal: scale(2), // Re-add padding for text clarity
+        paddingHorizontal: scale(2),
     },
     statTitle: {
         fontSize: scale(9),
@@ -689,16 +681,13 @@ const styles = StyleSheet.create({
         lineHeight: scale(11),
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-
-    // Heart Rate Specifics
     hrGraphPosition: {
         position: 'absolute',
-        top: scale(36), //
+        top: scale(36),
         left: 0,
         right: 0,
-        alignItems: 'center', // Center graph in card
+        alignItems: 'center',
     },
-    // UPDATED: Absolute position for "ms 99"
     hrValueContainer: {
         position: 'absolute',
         bottom: scale(3),
@@ -719,13 +708,11 @@ const styles = StyleSheet.create({
         color: '#434F4D',
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-
-    // General Stats
     statContent: {
         alignItems: 'flex-end',
         justifyContent: 'flex-end',
         flex: 1,
-        paddingRight: scale(4), // Alignment buffer
+        paddingRight: scale(4),
     },
     statValue: {
         fontSize: scale(27),
@@ -741,153 +728,155 @@ const styles = StyleSheet.create({
         marginBottom: scale(3),
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
-    // --- NEW WIDGET STYLES ---
+
+    // --- WIDGET CONTAINER (BIGGER) ---
     widgetContainer: {
         width: '100%',
-        backgroundColor: '#FDFDFD',
         borderRadius: scale(20),
-        shadowColor: 'rgb(61, 78, 74)',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.25,
         shadowRadius: scale(13),
         elevation: 5,
-        paddingHorizontal: scale(17), // Padding for title alignment
-        paddingTop: scale(15),
-        paddingBottom: scale(15),
+        paddingHorizontal: scale(17),
+        paddingTop: scale(16),
+        paddingBottom: scale(16),
     },
     widgetTitle: {
-        color: '#434F4D', //
-        fontSize: scale(16),
+        color: '#434F4D',
+        fontSize: scale(17),
         fontWeight: '600',
         fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }),
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
-        marginBottom: scale(10), // Spacing between title and content
+        marginBottom: scale(12),
     },
-    // --- INSIGHTS STYLES (Fixed) ---
+
+    // --- INSIGHTS (BIGGER CARDS) ---
     insightsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: scale(7),
+        gap: scale(10),
     },
     insightCard: {
         flex: 1,
-        height: scale(56),
-        borderRadius: scale(14),
-        // Precise Redline Paddings
-        paddingTop: scale(13),
-        paddingLeft: scale(8),
-        paddingRight: scale(8),
-        paddingBottom: scale(8),
+        height: scale(82),
+        borderRadius: scale(16),
+        paddingTop: scale(14),
+        paddingLeft: scale(12),
+        paddingRight: scale(12),
+        paddingBottom: scale(10),
         flexDirection: 'row',
         position: 'relative',
         overflow: 'hidden',
     },
     insightCardTitle: {
-        fontSize: scale(9),
-        fontWeight: '600',
+        fontSize: scale(11),
+        fontWeight: '700',
         color: '#434F4D',
-        marginBottom: scale(3), // Gap
+        marginBottom: scale(5),
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
     insightCardBody: {
-        fontSize: scale(8),
+        fontSize: scale(9.5),
         fontWeight: '600',
-        color: 'rgba(67, 79, 77, 0.71)',
-        lineHeight: scale(10),
+        color: 'rgba(67, 79, 77, 0.65)',
+        lineHeight: scale(13),
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
     insightArrow: {
         position: 'absolute',
-        right: scale(12), // Positioned away from edge
-        bottom: scale(8), // Positioned away from edge
+        right: scale(4),
+        bottom: scale(4),
+        opacity: 0.6,
     },
-    // --- ACTIVITIES STYLES ---
+    insightTextWrap: {
+        flex: 1,
+        paddingRight: scale(30),
+    },
+
+    // --- ACTIVITIES (BIGGER CARDS) ---
     activitiesRow: {
         flexDirection: 'row',
-        gap: scale(6), // Gap between items
+        gap: scale(8),
     },
     activityCard: {
-        flex: 1, // Equal width for cards
-        height: scale(56),
-        backgroundColor: '#F2F2F2',
-        borderRadius: scale(14),
+        flex: 1,
+        height: scale(82),
+        borderRadius: scale(16),
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: scale(8),
-        justifyContent: 'space-between', // Pushes icon to right
+        paddingHorizontal: scale(10),
+        justifyContent: 'space-between',
     },
     activityTextCol: {
         flex: 1,
         height: '100%',
         justifyContent: 'center',
-        paddingVertical: scale(6),
-        gap: scale(1), // Add gap between title and bottom text
+        paddingVertical: scale(8),
+        gap: scale(2),
     },
     activityTitle: {
-        fontSize: scale(9),
-        fontWeight:'600',
+        fontSize: scale(10),
+        fontWeight: '700',
         color: '#434F4D',
-        marginBottom: scale(1),
+        marginBottom: scale(2),
     },
     activityTime: {
-        fontSize: scale(10), //
+        fontSize: scale(11),
         fontWeight: '700',
         color: '#6A7472',
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
     activityDuration: {
-        fontSize: scale(12), //
+        fontSize: scale(14),
         fontWeight: '700',
         color: '#434F4D',
         ...Platform.select({ ios: { fontDesign: 'rounded' } }),
     },
     activityIconCol: {
-        width: scale(30),
+        width: scale(32),
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
     },
     activityIconPlaceholder: {
-        width: scale(24),
-        height: scale(24),
-        borderRadius: scale(12),
+        width: scale(28),
+        height: scale(28),
+        borderRadius: scale(14),
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     addActivityBtn: {
-        width: scale(20), //
-        height: scale(20),
-        borderRadius: scale(7),
-        backgroundColor: '#F2F2F2',
+        width: scale(24),
+        height: scale(24),
+        borderRadius: scale(8),
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'center',
     },
-    // --- HEALTH TIPS STYLES ---
+
+    // --- HEALTH TIPS (BIGGER CARDS) ---
     healthTipCard: {
-        flex: 1, // Proportional scaling
-        height: scale(56), // Matches Activity Card height
-        backgroundColor: '#F2F2F2', // Light grey
-        borderRadius: scale(14),
-        // Padding from and
-        paddingTop: scale(7),
-        paddingLeft: scale(8),
-        paddingRight: scale(8),
-        paddingBottom: scale(4),
+        flex: 1,
+        height: scale(82),
+        borderRadius: scale(16),
+        paddingTop: scale(10),
+        paddingLeft: scale(10),
+        paddingRight: scale(10),
+        paddingBottom: scale(8),
         justifyContent: 'flex-start',
     },
     healthTipTitle: {
-        //
-        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }), // Standard SF Pro
-        fontSize: scale(9),
-        fontWeight: '600',
+        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }),
+        fontSize: scale(10),
+        fontWeight: '700',
         color: '#434F4D',
-        marginBottom: scale(3), // Gap
+        marginBottom: scale(4),
     },
     healthTipBody: {
-        //
-        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }), // Standard SF Pro
-        fontSize: scale(8),
+        fontFamily: Platform.select({ ios: 'System', android: 'sans-serif' }),
+        fontSize: scale(9),
         fontWeight: '600',
-        color: 'rgba(67, 79, 77, 0.71)',
-        lineHeight: scale(10),
+        color: 'rgba(67, 79, 77, 0.65)',
+        lineHeight: scale(12),
     }
 });

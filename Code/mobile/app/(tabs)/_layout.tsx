@@ -5,13 +5,17 @@ import { BlurView } from 'expo-blur';
 import { TabBarIcon } from '@/components/ui/TabBarIcon';
 import { HapticTab } from '@/components/haptic-tab';
 import CustomHeader from '@/components/Header';
+import { useAppColors } from '@/hooks/use-app-colors';
+import { useTheme } from '@/context/ThemeContext'; 
 
 // --- RESPONSIVE SCALING UTILITY ---
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const FIGMA_WIDTH = 402; // Your design width
+const FIGMA_WIDTH = 402; 
 const scale = (size: number) => (SCREEN_WIDTH / FIGMA_WIDTH) * size;
 
 export default function TabLayout() {
+    const colors = useAppColors(); 
+    const { isDark } = useTheme(); 
 
     return (
         <Tabs
@@ -20,49 +24,43 @@ export default function TabLayout() {
                 headerShown: false,
                 tabBarShowLabel: false,
                 tabBarButton: HapticTab,
-                tabBarActiveTintColor: '#000000',
-                tabBarInactiveTintColor: '#999999',
+                
+           
+                tabBarActiveTintColor: isDark ? '#FFFFFF' : '#000000',
+                tabBarInactiveTintColor: isDark ? 'rgba(255, 255, 255, 0.4)' : '#999999',
 
-                // 1. Container Geometry
                 tabBarStyle: {
                     position: 'absolute',
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    height: scale(90), // Scaled
+                    height: scale(90),
                     borderTopWidth: 0,
                     elevation: 0,
                     backgroundColor: 'transparent',
 
-                    // --- THE FIX ---
-                    // Apply the radius here too, so the shadow follows the curve
-                    borderTopLeftRadius: scale(34),   // Scaled
-                    borderTopRightRadius: scale(34),  // Scaled
-                    // ----------------
+                    borderTopLeftRadius: scale(34),
+                    borderTopRightRadius: scale(34),
 
                     shadowColor: '#000',
-                    shadowOffset: { width: 0, height: scale(10) }, // Scaled
-                    shadowOpacity: 0.15,
-                    shadowRadius: scale(20), // Scaled
+                    shadowOffset: { width: 0, height: scale(10) },
+                    shadowOpacity: isDark ? 0.4 : 0.15, 
+                    shadowRadius: scale(20),
 
-                    paddingTop: scale(19), // Scaled
+                    paddingTop: scale(19),
                 },
 
-                // 2. The Glass Layer
+    
                 tabBarBackground: () => (
                     <View style={styles.maskWrapper}>
-                        {/* Figma Layer: Background Blur
-                           Property: backdrop-filter: blur(40px)
-                        */}
                         <BlurView
-                            intensity={40} // Kept exact original
-                            tint="light"   // Kept exact original
+                            intensity={40}
+                            tint={isDark ? "dark" : "light"} 
                             style={StyleSheet.absoluteFill}
                         >
-                            {/* Figma Layer: Fill & Blend Mode Simulation */}
                             <View style={{
                                 ...StyleSheet.absoluteFillObject,
-                                backgroundColor: 'rgba(255, 255, 255, 0.35)', // Kept exact original
+                                backgroundColor: isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.35)', 
                             }} />
                         </BlurView>
                     </View>
@@ -71,7 +69,6 @@ export default function TabLayout() {
                 header: ({ options }) => <CustomHeader title={options.title || ''} />,
             }}
         >
-            {/* ... Your Tabs.Screens remain exactly the same ... */}
             <Tabs.Screen
                 name="dashboard"
                 options={{
@@ -100,15 +97,6 @@ export default function TabLayout() {
                     tabBarIcon: ({ color, focused }) => <TabBarIcon name="sensors_watch" color={color} focused={focused} />,
                 }}
             />
-            {/*
-            <Tabs.Screen
-                name="stress"
-                options={{
-                    title: 'Stress & ECG',
-                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="chart" color={color} focused={focused} />,
-                }}
-            />
-            */}
             <Tabs.Screen
                 name="activities"
                 options={{
@@ -116,13 +104,6 @@ export default function TabLayout() {
                     tabBarIcon: ({ color, focused }) => <TabBarIcon name="activities" color={color} focused={focused} />,
                 }}
             />
-            {/*<Tabs.Screen
-                name="profile"
-                options={{
-                    title: 'Activities',
-                    tabBarIcon: ({ color, focused }) => <TabBarIcon name="profile" color={color} focused={focused} />,
-                }}
-            />*/}
             <Tabs.Screen name="profile" options={{ href: null }} />
             <Tabs.Screen name="faq" options={{ href: null }} />
             <Tabs.Screen name="stress" options={{ href: null }} />
@@ -133,9 +114,8 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
     maskWrapper: {
         flex: 1,
-        // Figma Shape: border-radius: 34px
-        borderTopLeftRadius: scale(34),  // Scaled
-        borderTopRightRadius: scale(34), // Scaled
+        borderTopLeftRadius: scale(34),
+        borderTopRightRadius: scale(34),
         overflow: 'hidden',
     },
 });
