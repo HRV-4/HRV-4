@@ -16,6 +16,7 @@ export const API = {
   updateGender: (id: string) => `${API_BASE_URL}/user/${id}/gender`,
   updateClinicalStory: (id: string) => `${API_BASE_URL}/user/${id}/clinical-story`,
   updateNotes: (id: string) => `${API_BASE_URL}/user/${id}/notes`,
+  changePassword: (id: string) => `${API_BASE_URL}/user/${id}/change-password`,
   deleteUser: (id: string) => `${API_BASE_URL}/user/${id}`,
 
   // ─── Activities ───
